@@ -1,0 +1,1829 @@
+/**
+==============================================
+Under:
+GNU GENERAL PUBLIC LICENSE
+Version 3, 29 June 2007
+
+Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>
+Everyone is permitted to copy and distribute verbatim copies
+of this license document, but changing it is not allowed.
+... ... ...
+==============================================
+Copyright (C) 2017-2020  Zigmantas Kryzius
+e-mail: zigmas@vtex.lt, zigmas.kr@gmail.com
+==============================================
+*/
+
+// needed:
+import javax.swing.filechooser.FileNameExtensionFilter;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Row.MissingCellPolicy;
+
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+import org.apache.poi.openxml4j.util.ZipSecureFile;
+	
+import org.apache.commons.io.FileUtils;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+// ===
+
+jEditMacros = new Macros();
+alert(arg) {
+	jEditMacros.message(view, arg);
+}
+//alert("mumu");
+
+// === ARTICLE DATA ===
+
+//{{{ //~~~ objectPaneArticleData()
+objectPaneArticleData() {
+	
+	_perl = "d:\\bin\\perl\\bin\\perl.exe";
+	_script = "d:\\works\\articledata\\articledata.pl";
+	_outputTempDir = "d:\\works\\articledata\\temp\\";
+	
+	paneArticleDataOuter = new JPanel();
+	paneArticleData = new JPanel();
+	paneArticleDataOuter.add(paneArticleData);
+	// === Here are the components of the tab "Article Data": ===
+	sourceList = new Vector(2);
+	sourceList.add("article");
+	sourceList.add("order");
+	requestList = new Vector(3);
+	requestList.add("fmt_all");
+	requestList.add("fmt");
+	requestList.add("refersto");
+	markupList = new Vector(2);
+	markupList.add("default");
+	markupList.add("bibtags");
+
+	labelSourceType = new JLabel("Source Type ");
+	labelSourceFile = new JLabel("Source File");
+	labelOutputFile = new JLabel("Output File");
+	textFieldSourceFile = new JTextField(25);
+	textFieldOutputFile = new JTextField(25);
+	//
+	textFieldSourceFile.setText("");
+	textFieldOutputFile.setText("");
+	//
+	comboSource = new JComboBox(sourceList);
+	labelRequest = new JLabel("Request");
+	comboRequest = new JComboBox(requestList);
+	labelMarkup = new JLabel("Markup");
+	comboMarkup = new JComboBox(markupList);
+	buttonBrowseSource = new JButton("Browse Source");
+	buttonBrowseOutput = new JButton("Browse Output");
+	buttonClear = new JButton("Clear");
+	buttonRun = new JButton("Run");
+	buttonHelp = new JButton("Help");
+
+	buttonRunBackgroundColor = new Color(153, 202, 133); // RGB
+	buttonRun.setBackground(buttonRunBackgroundColor);
+	
+//{{{ //~~~ GridBagLayout  in objectPaneArticleData
+	gbl = new GridBagLayout();
+	gbc = new GridBagConstraints();
+	gbc.fill = GridBagConstraints.HORIZONTAL;
+	paneArticleData.setLayout(gbl);
+	// ===
+	//(0, 0) position
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 0;
+	gbc.gridy = 0;
+	paneArticleData.add(labelSourceType, gbc);
+	//
+	// (0, 1) position
+	gbc.weightx = 0.5; //0.5
+	gbc.gridx = 1;
+	gbc.gridy = 0;
+	paneArticleData.add(comboSource, gbc);
+	// ===
+	// (1, 0) position
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 0;
+	gbc.gridy = 1;
+	gbc.weighty = 1.0; // request any extra vertical space
+	paneArticleData.add(labelSourceFile, gbc);
+	//
+	// (1, 1) position
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 1;
+	gbc.gridy = 1;
+	gbc.weighty = 1.0; // request any extra vertical space
+	paneArticleData.add(textFieldSourceFile, gbc);
+	//
+	// (1, 2) position
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 2;
+	gbc.gridy = 1;
+	//gbc.weighty = 1.0; // request any extra vertical space
+	paneArticleData.add(buttonBrowseSource, gbc);
+	// ===
+	// (2, 0) position
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 0;
+	gbc.gridy = 2;
+	gbc.weighty = 1.0; // request any extra vertical space
+	paneArticleData.add(labelOutputFile, gbc);
+	// (2, 1) position
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 1;
+	gbc.gridy = 2;
+	gbc.weighty = 1.0; // request any extra vertical space
+	paneArticleData.add(textFieldOutputFile, gbc);
+	// (2, 2) position
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 2;
+	gbc.gridy = 2;
+	//gbc.weighty = 1.0; // request any extra vertical space
+	paneArticleData.add(buttonBrowseOutput, gbc);
+	// ===
+	//(3, 0) position
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 0;
+	gbc.gridy = 3;
+	paneArticleData.add(labelRequest, gbc);
+	// (3, 1) position
+	gbc.weightx = 1.0; //0.5
+	gbc.gridx = 1;
+	gbc.gridy = 3;
+	paneArticleData.add(comboRequest, gbc);
+	// ===
+	// (3, 2) position
+	gbc.weightx = 1.0; //0.5
+	gbc.gridx = 2;
+	gbc.gridy = 3;
+	paneArticleData.add(buttonClear, gbc);
+	// ===
+	//(4, 0) position
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 0;
+	gbc.gridy = 4;
+	paneArticleData.add(labelMarkup, gbc);
+	// ===
+	// (4, 1) position
+	gbc.weightx = 1.0; //0.5
+	gbc.gridx = 1;
+	gbc.gridy = 4;
+	paneArticleData.add(comboMarkup, gbc);
+	// ===
+	// (5, 1) position
+	gbc.weightx = 1.0; //0.5
+	gbc.gridx = 1;
+	gbc.gridy = 5;
+	gbc.gridwidth = 1;
+	//gbc.fill = GridBagConstraints.NONE;
+	paneArticleData.add(buttonRun, gbc);
+	// (5, 2) position
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 2;
+	gbc.gridy = 5;
+	paneArticleData.add(buttonHelp, gbc);
+	//
+// }}}
+
+	// Listeners:
+	//{{{ //~~~ buttonBrowseSourceHandler
+	buttonBrowseSourceHandler = new ActionListener() {
+		actionPerformed(evnt) {
+			startLocation = "D:\\local";
+			dialogTitle = "Choose Article File";
+			sourceType = comboSource.getSelectedItem().toString();
+			if (sourceType.equals("order")) {
+				startLocation = "U:\\orig_db";
+				dialogTitle = "Choose Order File";
+			}
+			chooserS = new JFileChooser(startLocation);
+			chooserS.setDialogTitle(dialogTitle);
+			chooserS.setPreferredSize(new Dimension(380, 560));
+			returnValue = chooserS.showOpenDialog(null);
+			if (returnValue == JFileChooser.APPROVE_OPTION) {
+				path = chooserS.getSelectedFile().getAbsolutePath();
+				textFieldSourceFile.setText(path);
+			}
+		}
+	};
+	//}}}
+	
+	//{{{ //~~~ buttonBrowseOutputHandler
+	buttonBrowseOutputHandler = new ActionListener() {
+		actionPerformed(evnt) {
+			chooserO = new JFileChooser();
+			fsv = chooserO.getFileSystemView();
+			roots = fsv.getRoots();
+			files = roots[0].listFiles();
+			start = files[0];
+			chooserO.setCurrentDirectory(start);
+			chooserO.setDialogTitle("Choose Output File");
+			chooserO.setPreferredSize(new Dimension(380, 560));
+			returnValue = chooserO.showOpenDialog(null);
+			if (returnValue == JFileChooser.APPROVE_OPTION) {
+				path = chooserO.getSelectedFile().getAbsolutePath();
+				textFieldOutputFile.setText(path);
+			}
+		}
+	};
+	//}}}
+	//
+	//{{{ //~~~	buttonClearHandler
+	buttonClearHandler = new ActionListener() {
+		actionPerformed(evnt) {
+			textFieldSourceFile.setText("");
+			textFieldOutputFile.setText("");
+		}
+	};
+	//}}}
+	//
+	//{{{ //~~~ buttonRunHandler ~~~
+	buttonRunHandler = new ActionListener() {
+		actionPerformed(evnt) {
+			// variables:
+			_sourceFile;
+			_source;
+			_outputFile;
+			_output;
+			buffer;
+			fileName;
+			fileExt;
+			fileDir;
+			//
+			reBufferValue = "^(.*?)(\\.\\w+) \\(([A-Z]\\:.*)\\)$";
+			ptnBufferValue = Pattern.compile(reBufferValue, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+			mtchBufferValue;
+			
+			// values:
+			valueSourceType = comboSource.getSelectedItem().toString();
+			valueRequest = comboRequest.getSelectedItem().toString();
+			valueMarkup = comboMarkup.getSelectedItem().toString();
+			valueSourceFile = textFieldSourceFile.getText();
+			valueOutputFile = textFieldOutputFile.getText();
+			
+			// ===
+			// getting options for the script starter:
+			if (valueSourceFile.equals("")) {
+				// view   is   org.gjt.sp.jedit.View[active]
+				// If the file is not given in the option selection,
+				// the file (of 'article' or 'order') in the active buffer is taken:
+				buffer = view.getBuffer();
+				mtchBufferValue = ptnBufferValue.matcher(buffer);
+				if (mtchBufferValue.find()) {
+					fileName = mtchBufferValue.group(1);
+					fileExt = mtchBufferValue.group(2);
+					fileDir = mtchBufferValue.group(3);
+					_sourceFile = fileDir + fileName + ".tex";
+				}
+			} else {
+				_sourceFile = valueSourceFile;
+			}
+			if (valueOutputFile.equals("")) {
+				// If the Output File is not given, 
+				// then the Default Temp Output File name is created:
+				if (valueSourceFile.equals("")) {
+					_outputFile = _outputTempDir + fileName + "-ouput" + ".tex";
+				}
+				else {
+					date = new Date();
+					_outputFile = _outputTempDir + date.getTime() + "-ouput" + ".tex";
+				}
+			} else {
+				_outputFile = valueOutputFile;
+			}
+			//
+			if (valueSourceType.equals("article")) {
+				_source = "--article=" + _sourceFile;
+			} else if (valueSourceType.equals("order")) {
+				_source = "--order=" + _sourceFile;
+			}
+			_output = "--output=" + _outputFile;
+			_request = "--request=" + valueRequest;
+			_markup  = "--markup=" + valueMarkup;
+			clinePerlScript = _perl + " " + _script + " " + _source + 
+				" " +_output + " " + _request + " " + _markup;
+				
+			runnerPerlScript() {
+				run() {
+					// do work:
+					runExternalApp(super.clinePerlScript, true);
+				}
+				return this;
+			}
+			runnerPerlScript = runnerPerlScript();
+			// Starts thread on runnerPerlScript.run()
+			threadPerlScript = new Thread(runnerPerlScript);
+			try {
+				threadPerlScript.start();	
+				threadPerlScript.join();  // Waits for this thread to die.
+			} catch (exceptionn) {
+				alert(exceptionn.toString());
+			}
+			bufferNew = jEdit.openFile(view, _outputFile);
+		}
+	};
+	//}}}
+	
+	buttonBrowseSource.addActionListener(buttonBrowseSourceHandler);
+	buttonBrowseOutput.addActionListener(buttonBrowseOutputHandler);
+	buttonClear.addActionListener(buttonClearHandler);
+	buttonRun.addActionListener(buttonRunHandler);
+
+	//
+	// Tooltips
+	labelSourceFile.setToolTipText("[default]: File in the active buffer");
+	labelOutputFile.setToolTipText("[default]: File in some TEMP; opens in a new buffer");
+	buttonClear.setToolTipText("Sets fields \"Source File\" and \"Output File\" to [default]");
+	buttonHelp.setToolTipText("To Be Done :)");
+	buttonRun.setToolTipText("Runs script");
+	//
+	return paneArticleDataOuter;
+}
+// }}}
+
+// === QC TOOL ===
+
+qC = object();
+qC.excelColor = new Color(0x99cc00);
+qC.isSourceFolderChosen = false;
+qC.isMasterFolderChosen = false;
+qC.exclObj;
+qC.isExcelChosen = false;      // global mark
+qC.isExcelFileWritten = false; // global mark
+qC.textFieldMasterFolder = new JTextField(25);
+qC.textFieldExcelFile = new JTextField(25);
+qC.textFieldItemPosition = new JTextField(25);
+// qC.masterFolderItemsList is of type File[]
+qC.masterFolderItemsList = new File[] {};
+qC.filesTreeArray = new ArrayList();
+qC.markButtonCloseFiles = false;
+
+// DEBUG:
+
+tk = Toolkit.getDefaultToolkit();
+scrDim = tk.getScreenSize();
+scrWidth = scrDim.width;
+scrHeight = scrDim.height;
+// DELL@Win10 (actual screen 1920x1080):
+// scrWidth  = 1280; scrHeight = 720
+// due to special trick with Java forced to see low resolution
+//
+//screen dimensions = "1366x768";   // HPP @home; Win10 Home 
+//screen dimensions = "1680x1050";  // PHILIPS monitor @work; Win10 Pro
+_sevenz = "C:\\PROGRA~1\\7-Zip\\7z.exe";
+
+
+// ===== FUNCTIONS =====
+//{{{ //~~~ function dialogChooseFolder
+dialogChooseFolder(start, title) {
+	chooser = new JFileChooser(start);
+	path = "";
+	chooser.setDialogTitle(title);
+	chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+	chooser.setPreferredSize(new Dimension(380, 580));
+	returnValue = chooser.showOpenDialog(null);
+	if (returnValue == JFileChooser.APPROVE_OPTION) {
+		path = chooser.getSelectedFile().getAbsolutePath();
+	}
+	return path;
+}
+//}}}
+
+//{{{ //~~~ function splitItemName
+splitItemName(str) {
+	// Splits the item name into JID and AID.
+	reSplit = "\\A((CRASS1)|(.+?))(\\d+)\\Z";
+	ptnSplit = Pattern.compile(reSplit, Pattern.CASE_INSENSITIVE);
+	mtch;
+	data = new HashMap();
+	data.put("jid", "error");
+	data.put("aid", "000");
+	mtch = ptnSplit.matcher(str);
+	if (mtch.find()) {
+		data.put("jid", mtch.group(1)); 
+		data.put("aid", mtch.group(4));
+	} 
+	return data;
+}
+//}}}
+
+//{{{ //~~~ ExcelObj(excelFname) - constructor
+ExcelObj(excelFileName) {
+	excelFile;
+	workbook;
+	spreadsheet;
+	dataFormatter = new DataFormatter();
+	rowCount = 0;
+	itemRow; 
+	itemCellInRow;
+	itemInExcel = false;
+	targetRow;
+	targetCell;
+	getSpreadsheet() {
+		/* https://poi.apache.org/apidocs/4.1/ */
+		/* https://poi.apache.org/components/spreadsheet/quick-guide.html */
+		try {
+			super.excelFile = new File(excelFileName);
+			ZipSecureFile.setMinInflateRatio(0.001);
+			// zipSecureFile.setMinInflateRatio(0.2); 
+			// java.io.IOException: Zip bomb detected!
+			// Uncompressed size: 143475, Raw/compressed size: 1430, ratio: 0.009967
+			// Limits: MIN_INFLATE_RATIO: 0.010000, Entry: xl/pivotCache/pivotCacheRecords1.xml 
+			fis = new FileInputStream(super.excelFile);
+			super.workbook = new XSSFWorkbook(fis);
+			////workbook.setMissingCellPolicy(Row.CREATE_NULL_AS_BLANK);
+			//alert(this.workbook.getMissingCellPolicy());
+			////mcp = new MissingCellPolicy(Row.CREATE_NULL_AS_BLANK);
+			//workbook.setMissingCellPolicy(UmRow.CREATE_NULL_AS_BLANK);  //(Row.MissingCellPolicy missingCellPolicy)
+			//Sets the policy on what to do when getting missing or blank cells from a row.
+			super.spreadsheet = super.workbook.getSheetAt(0);
+			super.rowCount = super.spreadsheet.getLastRowNum();
+		} catch (exceptiona) {
+			alert(exceptiona.toString());
+		}
+	}
+	getItemRow(itemId) {
+		//:: itemData is HashMap
+		itemData = splitItemName(itemId); 
+		jidFound = false;
+		cellValue;
+		runOn = true;
+		for (ri = 0; (ri <= super.rowCount) && runOn; ri++) {
+			row = super.spreadsheet.getRow(ri);
+			cellCount = row.getLastCellNum(); 
+			//Gets the index of the last cell contained in this row PLUS ONE.
+			for (ci = 0; (ci < cellCount - 1) && runOn; ci++) {
+				//: JID and AID are in neighboring cells ('4' and '5')
+				cellJ = row.getCell(ci);
+				cellA = row.getCell(ci + 1);
+				cellValueJ = super.dataFormatter.formatCellValue(cellJ);
+				cellValueA = super.dataFormatter.formatCellValue(cellA);
+				if (cellValueJ.equals(itemData.get("jid")) && 
+					cellValueA.equals(itemData.get("aid"))) {
+					jidFound = true;
+					super.itemRow = ri;
+					super.itemCellInRow = ci;
+					super.itemInExcel = true;
+					runOn = false;
+				}
+			}
+		}
+	}
+	getPageType() {
+		return super.spreadsheet.getRow(super.itemRow).getCell(13).toString();
+	}
+	acceptPageNumber(numb) {
+		numint = Integer.valueOf(numb);
+		super.targetRow = super.spreadsheet.getRow(super.itemRow);
+		super.targetCell = super.targetRow.getCell(10);
+		if (super.targetCell == null) {
+			super.targetCell = super.targetRow.createCell(10);
+		}
+		super.targetCell.setCellValue(numint);
+	}
+	writeToFile() {
+		fileOut = new FileOutputStream(super.excelFile);
+		super.workbook.write(fileOut);
+		fileOut.close();
+	}
+	return this; //!
+}
+//}}}
+
+//{{{ //~~~ runExternalApp
+runExternalApp(command, exitMsg) {
+	/*
+	https://www.javaworld.com/article/2071275/core-java/when-runtime-exec---won-t.html
+	There are four overloaded versions of the exec() command:
+	<...>
+	For each of these methods, a command -- and possibly a set of arguments --
+	is passed to an operating-system-specific function call. This subsequently
+	creates an operating-system-specific process (a running program) with
+	a reference to a Process class returned to the Java VM. The Process class
+	is an abstract class, because a specific subclass of Process exists
+	for each operating system.
+	*/
+	// if exitMsg ...
+	try {
+		rt = Runtime.getRuntime();
+		process = rt.exec(command);
+		exitVal = process.waitFor();
+		if (exitVal == 0) {
+			//println("Successfully executed the command");
+		}
+		else {
+			if (exitMsg) {
+				//println("Failed to execute: " + command);
+				alert("Failed to execute: " + command);
+			}
+			try {
+				br = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+				line;
+				if ((line = br.readLine()) != null) {
+					println(line);
+				}
+			} catch (eexcp) {
+				//eexcp.printStackTrace();
+				alert(eexcp.toString());
+			}
+		}
+	} catch (exception) {
+		alert(exception.toString());
+	}
+}
+// }}}
+
+//{{{ //~~~ extractArchiveSevenZ
+extractArchiveSevenZ(archivePath, tmpDir) {
+	// Function for code reuse.	
+	// https://stackoverflow.com/questions/31460643/how-do-i-unzip-all-files-in-a-folder-using-7-zip-in-batch
+	// " x " -- eXtract files with full paths
+	// "-o " --  -o{Directory} : set Output directory
+	// " -aoa " -- Overwrite All existing files without prompt
+	clineSevenZ = _sevenz + " x " 
+		+ "\"" + archivePath + "\"" + " -aoa " + "-o" 
+		+ "\"" + tmpDir + "\""; 
+	runnerSevenZ() {
+		run() {
+			// do work:
+			runExternalApp(super.clineSevenZ, true);
+		}
+		return this;
+	}
+	runnerSevenZ = runnerSevenZ();
+	// Starts thread on runnerSevenZ.run()
+	threadSevenZ = new Thread(runnerSevenZ);
+	threadSevenZ.start();
+	threadSevenZ.join();
+}
+//}}}
+
+//{{{	//~~~ directoryContentsArray
+directoryContentsArray(argFile) {
+	// http://www.avajava.com/tutorials/lessons/how-do-i-recursively-display-all-files-and-directories-in-a-directory.html
+	// recursively collect data on all files and directories in a directory
+	// https://www.geeksforgeeks.org/file-listfiles-method-in-java-with-examples/
+	File[] entriesList;
+	// This .clear should be done before every 
+	// use of directoryContentsArray(...)
+	//qC.filesTreeArray.clear();
+	try {
+		entriesList = argFile.listFiles();
+		for (i = 0; i < entriesList.length; i++) {
+			th = new HashMap();
+			if (entriesList[i].isDirectory()) {
+				//th = {type: "d-ry", name: entriesArray[i]}; // directory
+				th.put("type", "d-ry");
+				th.put("name", entriesList[i]);
+			}
+			else {
+				//th = {type: "file", name: entriesArray[i]};
+				th.put("type", "file");
+				th.put("name", entriesList[i]);
+			}
+			qC.filesTreeArray.add(th);
+			if (entriesList[i].isDirectory()) {
+				directoryContentsArray(entriesList[i]);
+			}
+		}
+	} catch (exception) {
+		alert("directoryContentsArray:: excp: " + exception);
+	}
+}
+// }}}
+
+//{{{	//~~~ getItemName
+getItemName(folderPath) {
+	reLastSlash = "(.+\\\\)([^\\\\]+)";
+	ptnLastSlash = Pattern.compile(reLastSlash, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+	mtchLastSlash;
+	itemName;
+	mtchLastSlash = ptnLastSlash.matcher(folderPath);
+	if (mtchLastSlash.find()) {
+		itemName = mtchLastSlash.group(2).toUpperCase();
+	}
+	else {
+		itemName = "ITEM9999";
+	}
+	return itemName;
+}
+//}}}
+
+//{{{	//~~~ copyItemDirectory
+copyDirectoryApache(source, destin) {
+	// https://kodejava.org/how-do-i-copy-directory-with-all-its-contents-to-another-directory/
+	srcDir = new File(source);
+	destDir = new File(destin);
+	try {
+		// Copy source directory into destination directory
+		// including its child directories and files. When
+		// the destination directory is not exists it will
+		// be created. This copy process also preserve the
+		// date information of the file.
+		//: org.apache.commons.io.FileUtils
+		FileUtils.copyDirectory(srcDir, destDir);
+	} catch (exp) {
+		exp.printStackTrace();
+	}
+}
+//}}}
+
+
+objectPaneQcTool() 
+{
+	// To make "paneHelper" somehow stable in size, it is put onto another JPanel
+	// with the desirable or "default" layout.
+	paneQcToolOuter = new JPanel();
+	paneQcToolHelper = objectPaneQcToolHelper();
+	paneQcToolOuter.add(paneQcToolHelper);
+	return paneQcToolOuter;
+}
+
+objectPaneQcFiles() 
+{
+	// To make "paneQcFiles" somehow stable in size, it is put onto another JPanel
+	// with the desirable or "default" layout.
+	paneQcFilesOuter = new JPanel();
+	paneQcFilesHelper = objectPaneQcFilesHelper();
+	paneQcFilesOuter.add(paneQcFilesHelper);
+	return paneQcFilesOuter;
+}
+
+objectPaneQcFilesHelper()
+{
+	// To make "paneQcFiles" somehow stable in size, it is put onto another JPanel
+	// with the desirable or "default" layout.
+	paneQcFilesHelper = new JPanel();
+	// components:
+	labelSourceFolder = new JLabel("Source Folder ");
+	textFieldSourceFolder = new JTextField(25);
+	buttonSourceFolder = new JButton("Choose Source"); 
+	
+	labelMasterFolder = new JLabel("Master Folder ");
+	buttonMasterFolder = new JButton("Choose Master"); 
+	
+	buttonCopyItems = new JButton("Copy Item Files");
+	textFieldCopyItems = new JTextField(10);
+	
+	buttonExtractBz2 = new JButton("Extract bz2 (global)");
+	textFieldBz2Done = new JTextField(10);
+	
+	extractBz2Color = new Color(0x00f1ea);  // 0x00f1ea
+	buttonExtractBz2.setBackground(extractBz2Color);
+	textFieldBz2Done.setBackground(extractBz2Color);
+	
+	labelExcel = new JLabel("Excel QC List");
+	buttonChooseExcel = new JButton("Choose Excel");
+	labelExcel.setOpaque(true);
+	labelExcel.setBackground(qC.excelColor);
+	buttonChooseExcel.setBackground(qC.excelColor);
+	
+	String nameMasterFolder;
+	// List of all source items complete paths:
+	File[] itemsCompletePaths;
+	// List of all source (short) items names:
+	ArrayList itemsShortNames = new ArrayList();
+	
+	//{{{ ~~~ GridBagLayout  in objectPaneQcFiles()
+	gbl = new GridBagLayout();
+	gbc = new GridBagConstraints();
+	gbc.fill = GridBagConstraints.HORIZONTAL;
+	paneQcFilesHelper.setLayout(gbl);
+	// ===
+	// (0, 0) position
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 0;
+	gbc.gridy = 0;
+	paneQcFilesHelper.add(labelSourceFolder, gbc);
+	// (0, 1) position
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 1;
+	gbc.gridy = 0;
+	paneQcFilesHelper.add(textFieldSourceFolder, gbc);
+	// (0, 2) position
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 2;
+	gbc.gridy = 0;
+	paneQcFilesHelper.add(buttonSourceFolder, gbc);
+	// ===
+	// (1, 0) position;
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 0;
+	gbc.gridy = 1;
+	paneQcFilesHelper.add(labelMasterFolder, gbc);
+	// (1, 1) position;
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 1;
+	gbc.gridy = 1;
+	paneQcFilesHelper.add(qC.textFieldMasterFolder, gbc);
+	// (1, 2) position
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 2;
+	gbc.gridy = 1;
+	paneQcFilesHelper.add(buttonMasterFolder, gbc);
+	// ===
+	// (2, 0) position
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 0;
+	gbc.gridy = 2;
+	paneQcFilesHelper.add(labelExcel, gbc);
+	// (2, 1) position
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 1;
+	gbc.gridy = 2;
+	paneQcFilesHelper.add(qC.textFieldExcelFile, gbc);
+	// (2, 2) position
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 2;
+	gbc.gridy = 2;
+	paneQcFilesHelper.add(buttonChooseExcel, gbc);
+	// ===
+	// (3, 1) position;
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 1;
+	gbc.gridy = 3;
+	paneQcFilesHelper.add(buttonExtractBz2, gbc);
+	// (3, 2) position;
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 2;
+	gbc.gridy = 3;
+	paneQcFilesHelper.add(textFieldBz2Done, gbc);
+	// ===
+	// (4, 1) position;
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 1;
+	gbc.gridy = 4;
+	paneQcFilesHelper.add(buttonCopyItems, gbc);
+	// (4, 2) position;
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 2;
+	gbc.gridy = 4;
+	paneQcFilesHelper.add(textFieldCopyItems, gbc);
+	
+	//}}}
+	
+	// Listeners
+	
+	//{{{ //~~~ buttonSourceFolderHandler
+	buttonSourceFolderHandler = new ActionListener() {
+		actionPerformed(evnt) {
+			startLocation = "D:"; 
+			dialogTitle = "Choose Source Folder";
+			pathSf = dialogChooseFolder(startLocation, dialogTitle);
+			if (pathSf != "") {
+				textFieldSourceFolder.setText(pathSf);
+				nameSourceFolder = pathSf;
+				//:: .listFiles() gives type of File[];
+				itemsCompletePaths = (new File(nameSourceFolder)).listFiles();
+				qC.isSourceFolderChosen = true;
+			}
+		}
+	};
+	//}}}
+	
+	//{{{ //~~~ buttonMasterFolderHandler
+	buttonMasterFolderHandler = new ActionListener() {
+		actionPerformed(evnt) {
+			startLocation = "D:"; 
+			dialogTitle = "Choose Master Folder";
+			pathMf = dialogChooseFolder(startLocation, dialogTitle);
+			if (pathMf != "") {
+				qC.textFieldMasterFolder.setText(pathMf);
+				nameMasterFolder = pathMf;
+				qC.masterFolderItemsList = (new File(nameMasterFolder)).listFiles();
+				qC.textFieldItemPosition.setText("");
+				qC.isMasterFolderChosen = true;
+			}
+		}
+	};
+	//}}}
+	
+	//{{{ //~~~ buttonChooseExcelHandler
+	buttonChooseExcelHandler = new ActionListener() {
+		actionPerformed(evnt) {
+			if (!qC.isMasterFolderChosen) {
+				alert("Master Folder (QC Files) is not chosen.");
+				return;
+			}
+			startLocationExcel = "D:"; //\\_vtex-els--sqc";
+			dialogTitleExcel = "Choose Excel QC List";
+			JFileChooser chooserExcel = new JFileChooser(startLocationExcel);
+			//try {
+				String[] extensionsx = new String[]{"xlsx", "XLSX", "xls", "XLS"};
+				FileNameExtensionFilter filterExcel = new javax.swing.filechooser.FileNameExtensionFilter("Excel files", extensionsx);  // type: FileFilter
+				pathExcel;
+				chooserExcel.setDialogTitle(dialogTitleExcel);
+				chooserExcel.setFileSelectionMode(JFileChooser.FILES_ONLY);
+				chooserExcel.setFileFilter(filterExcel);
+				chooserExcel.setPreferredSize(new Dimension(380, 560));
+				returnValueExcel = chooserExcel.showOpenDialog(null);
+			//} catch (exp) {
+			//	alert(exp.toString());
+			//}
+			if (returnValueExcel == JFileChooser.APPROVE_OPTION) {
+				pathExcel = chooserExcel.getSelectedFile().getAbsolutePath();
+				qC.textFieldExcelFile.setText(pathExcel);
+				qC.isExcelChosen = true;
+			}
+		}
+	};
+	//}}}
+	
+	//{{{ //~~~ buttonCopyItemsHandler
+	buttonCopyItemsHandler = new ActionListener() {
+		actionPerformed(evnt) {
+			if (!qC.isSourceFolderChosen) {
+				alert("Source Folder (QC Files) is not chosen.");
+				return;
+			}
+			if (!qC.isMasterFolderChosen) {
+				alert("Master Folder (QC Files) is not chosen.");
+				return;
+			}
+			if (!qC.isExcelChosen) {
+				alert("Excel QC List (QC Files) is not chosen.");
+				return;
+			}
+			counter = 1;
+			masterFolder = qC.textFieldMasterFolder.getText() + "\\";
+			for (p = 0; p < itemsCompletePaths.length; p++) {
+				itemsShortNames.add(getItemName(itemsCompletePaths[p].toString()));
+			}
+			try {
+				nameExcel = qC.textFieldExcelFile.getText();
+				exObj = ExcelObj(nameExcel);
+				exObj.getSpreadsheet();
+				for (p = 0; p < itemsShortNames.size(); p++) {
+					exObj.getItemRow(itemsShortNames.get(p));
+					if (exObj.itemInExcel) {
+						copyDirectoryApache(itemsCompletePaths[p].toString(),
+							masterFolder + itemsShortNames.get(p));
+						exObj.itemInExcel = false;
+						counter = counter + 1;
+					} else {
+						// if not found in Excel, should not be copied
+					}
+				}
+				textFieldCopyItems.setText(counter - 1);
+				alert("Excel QC List should be opened anew. Close starter macro!");
+			} catch (exp) {
+				alert(exp.toString());
+			}
+		}
+	};
+	//}}}
+	
+	//{{{ //~~~ buttonExtractBz2Handler
+	buttonExtractBz2Handler = new ActionListener() {
+		// extract all *bz2 arxhives
+		actionPerformed(evnt) {
+			reBz2 = "(.*)\\\\(.*)(\\.bz2)$";  // directory - filename - .bz2
+			ptnBz2 = Pattern.compile(reBz2, Pattern.DOTALL);
+			mtchBz2;
+			pathString = qC.textFieldMasterFolder.getText();
+			argFile =  new File(pathString);
+			qC.filesTreeArray.clear();
+			directoryContentsArray(argFile);
+			thh;
+			thhs;
+			tdir;
+			size = qC.filesTreeArray.size();
+			counter = 0;
+			if (size > 0) {
+				for (j = 0; j < size; j++) {
+					thh = qC.filesTreeArray.get(j);
+					// thh.name is java.io.File, not String
+					thhs = thh.get("name").toString();
+					mtchBz2 = ptnBz2.matcher(thhs);
+					if (mtchBz2.find()) {
+						tdir = mtchBz2.group(1);
+						extractArchiveSevenZ(thhs, tdir);
+						counter++;
+					}
+				}
+				textFieldBz2Done.setText("Done: " + size + "/" + counter);
+			}
+			else {
+				alert("No .bz2 files found in \"master folder\".");
+			}
+		}
+	};
+	//}}}
+	
+	buttonSourceFolder.addActionListener(buttonSourceFolderHandler);
+	buttonMasterFolder.addActionListener(buttonMasterFolderHandler);
+	buttonChooseExcel.addActionListener(buttonChooseExcelHandler);
+	buttonExtractBz2.addActionListener(buttonExtractBz2Handler);
+	buttonCopyItems.addActionListener(buttonCopyItemsHandler);
+	// Tooltips
+	buttonSourceFolder.setToolTipText("Storage for complete QC sample.");
+	buttonMasterFolder.setToolTipText("Local storage for partial QC sample.");
+	buttonChooseExcel.setToolTipText("Partial QC sample spreadsheet.");
+	buttonExtractBz2.setToolTipText("Extracts *.bz2 archives in \"Master folder\" and subfolders.");
+	buttonCopyItems.setToolTipText("Based on Excel file, copies item files from \"Source folder\" to \"Master folder\".");
+	
+	return paneQcFilesHelper;
+}
+	
+
+objectPaneQcToolHelper()
+{
+	// To make "paneHelper" somehow stable in size, it is put onto another JPanel
+	// with the desirable or "default" layout.
+	paneQcToolHelper = new JPanel();
+	//
+	machine;
+	if (scrWidth == 1680) {
+		machine = "desktop1680";
+		// this means that acroreader is ...70
+	} else {
+		machine = "laptop";
+		// this means that acroreader is ...DC;
+		// and selection of acroreader works well;
+		// in case of DELL@Win10, screen width = 1280, height = 720
+	}
+	// default: machine = "desktop";
+	adobeReaderDC = "C:/Program Files (x86)/Adobe/Acrobat Reader DC/Reader/AcroRd32.exe";
+	adobeReader70 = "C:/Program Files/Adobe/Acrobat 7.0/Reader/AcroRd32.exe";
+	_adobeReader;
+	_taskkill;
+	if (machine.equals("desktop1680")) {
+		_adobeReader = adobeReader70;
+		_taskkill = "C:/Windows/System32/taskkill.exe";
+	} else {
+		//machine = "laptop";
+		_adobeReader = adobeReaderDC;
+		_taskkill = "C:/Windows/SysWOW64/taskkill.exe";
+	}
+	//jEdit = Java.type('org.gjt.sp.jedit.jEdit');
+	//view = jEdit.getActiveView();
+	// for any sake: it may happen that perspective.xml gets <TITLE>txt / XML - </TITLE>
+	// and the following code forces to close jEdit
+	view.setUserTitle("jEdit");
+	//
+	buttonMasterFolder = new JButton("Choose Folder"); 
+	//
+	labelPathToItem = new JLabel("Path To Item ");
+	textFieldPathToItem = new JTextField(25);
+	textFieldPathToItem.setText("");
+	buttonChooseItem = new JButton("Choose Item");
+	//
+	labelItemId = new JLabel("ITEM9999 ");
+	labelItemId.setToolTipText("Item in check or just checked");
+	//
+	buttonCloseFiles = new JButton("Close Files");
+	buttonCloseFiles.setEnabled(false);
+	buttonOrigFiles = new JButton("Open Orig. PDFs"); 
+	//
+	labelItemPosition = new JLabel("Item Position ");
+	qC.textFieldItemPosition.setText("");
+	buttonNextItem = new JButton("Next Item");
+	//
+	labelNotes = new JLabel("Notes ");
+	textFieldNotes = new JTextField(25);
+	//
+	openFilesColor = new Color(0x99ff99);   // 0x00cc33 0x99ff99
+	closeFilesColor = new Color(0xff6633);  // 0xff0000
+	extractBz2Color = new Color(0x00f1ea);  // 0x00f1ea
+	buttonChooseItem.setBackground(openFilesColor);
+	buttonCloseFiles.setBackground(closeFilesColor);
+	buttonNextItem.setBackground(openFilesColor);
+	
+	// for Excel:
+	labelPageType = new JLabel("Page type ");
+	textFieldPageType = new JTextField(25);
+	labelPageNumber = new JLabel("Page number ");
+	textFieldPageNumber = new JTextField(25);
+	buttonWriteToExcel = new JButton("Write to Excel");
+	
+	labelPageType.setOpaque(true);
+	labelPageNumber.setOpaque(true);
+	labelPageType.setBackground(qC.excelColor);
+	labelPageNumber.setBackground(qC.excelColor);
+	buttonWriteToExcel.setBackground(qC.excelColor);
+	nameExcelFile;
+	exclObj;
+	//
+	currentItemPosition = 0;  // position of the current item in this list
+	ip;
+	currentPageType;
+	currentPageNumber;
+	// Mini QC:
+	////textFieldPageTypeMini = new JTextField(18);
+	////textFieldPageNumberMini = new JTextField(18);
+	////buttonNextItemMini = new JButton("Next Item");
+	////buttonWriteToExcelMini = new JButton("Write to Excel");
+
+	nameItemFolder;
+	//
+	// --- jEdit views - buffers ---
+	newVcfgA;
+	newVcfgB;
+	viewTeX;
+	viewTXml;
+	//
+	vcfg = view.getViewConfig();
+	//ViewConfig = Java.type('org.gjt.sp.jedit.View.ViewConfig');
+	if (scrWidth == 1680) {
+		// machine = "desktop1680"
+		newVcfgA = new View.ViewConfig(vcfg.plainView, vcfg.splitConfig,
+			0, 0, vcfg.width, vcfg.height, vcfg.extState);
+		newVcfgB = new View.ViewConfig(vcfg.plainView, vcfg.splitConfig,
+			200, 0, vcfg.width - 200, vcfg.height, vcfg.extState);
+	}
+	if (scrWidth == 1280) {
+		// machine = "laptop"   "1280x720"
+		newVcfgA = new View.ViewConfig(vcfg.plainView, vcfg.splitConfig,
+			60, 0, 1220, vcfg.height, vcfg.extState); 
+		// x=60 is width of OS vertical taskbar on left
+		newVcfgB = new View.ViewConfig(vcfg.plainView, vcfg.splitConfig,
+			110, 0, vcfg.width - 100, vcfg.height, vcfg.extState);  
+		// 60 is width of OS vertical taskbar on left;
+		// 110-60=50 is less than 60, i.e. the right side is per 10 from the screen edge
+	}
+
+	//{{{ //~~~ GridBagLayout  in createPaneQcTool
+	gbl = new GridBagLayout();
+	gbc = new GridBagConstraints();
+	gbc.fill = GridBagConstraints.HORIZONTAL;
+	paneQcToolHelper.setLayout(gbl);
+	// ===
+	// (0, 0) position
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 0;
+	gbc.gridy = 0;
+	paneQcToolHelper.add(labelPathToItem, gbc);
+	// (0, 1) position
+	gbc.weightx = 0.5; //0.5
+	gbc.gridx = 1;
+	gbc.gridy = 0;
+	paneQcToolHelper.add(textFieldPathToItem, gbc);
+	// (0, 2) position;
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 2;
+	gbc.gridy = 0;
+	//gbc.weighty = 1.0; // request any extra vertical space
+	paneQcToolHelper.add(buttonChooseItem, gbc);
+	//
+	// (1, 0) position
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 0;
+	gbc.gridy = 1;
+	paneQcToolHelper.add(labelItemId, gbc);
+	// (1, 1) position
+	gbc.weightx = 1.0; //0.5
+	gbc.gridx = 1;
+	gbc.gridy = 1;
+	gbc.gridwidth = 1;
+	//gbc.fill = GridBagConstraints.NONE;
+	paneQcToolHelper.add(buttonCloseFiles, gbc);
+	// (1, 2) position
+	gbc.weightx = 1.0; //0.5
+	gbc.gridx = 2;
+	gbc.gridy = 1;
+	gbc.gridwidth = 1;
+	//gbc.fill = GridBagConstraints.NONE;
+	paneQcToolHelper.add(buttonOrigFiles, gbc);
+	// ===
+	// (2, 0) position
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 0;
+	gbc.gridy = 2;
+	paneQcToolHelper.add(labelItemPosition, gbc);
+	// (2, 1) position
+	gbc.weightx = 0.5; //0.5
+	gbc.gridx = 1;
+	gbc.gridy = 2;
+	paneQcToolHelper.add(qC.textFieldItemPosition, gbc);
+	// (2, 2) position
+	gbc.weightx = 1.0; //0.5
+	gbc.gridx = 2;
+	gbc.gridy = 2;
+	gbc.gridwidth = 1;
+	//gbc.fill = GridBagConstraints.NONE;
+	paneQcToolHelper.add(buttonNextItem, gbc);
+	// ===
+	// (3, 0) position
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 0;
+	gbc.gridy = 3;
+	paneQcToolHelper.add(labelNotes, gbc);
+	// (3, 1) position
+	gbc.weightx = 0.5; //0.5
+	gbc.gridx = 1;
+	gbc.gridy = 3;
+	paneQcToolHelper.add(textFieldNotes, gbc);
+	// ===
+	// (4, 0) position
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 0;
+	gbc.gridy = 4;
+	paneQcToolHelper.add(labelPageType, gbc);
+	// (4, 1) position
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 1;
+	gbc.gridy = 4;
+	paneQcToolHelper.add(textFieldPageType, gbc);
+	// ===
+	// (5, 0) position
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 0;
+	gbc.gridy = 5;
+	paneQcToolHelper.add(labelPageNumber, gbc);
+	//(5, 1) position
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 1;
+	gbc.gridy = 5;
+	paneQcToolHelper.add(textFieldPageNumber, gbc);
+	//(8, 2) position
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 2;
+	gbc.gridy = 5;
+	paneQcToolHelper.add(buttonWriteToExcel, gbc);
+	//}}}
+
+	//{{{ //~~~ viewPDFFilesAdobeReader
+	viewPDFFilesAdobeReader(pdfFileList) {
+		// Function for code reuse;
+		// input is ArrayList
+		/**
+		https://htipe.wordpress.com/2010/10/20/adobe-acrobat-command-line-options/
+		A few more options:
+		/n Launch a separate instance of the Acrobat application, even if one is currently open.
+		/s Open Acrobat, suppressing the splash screen.
+		/o Open Acrobat, suppressing the open file dialog.
+		/h Open Acrobat in hidden mode.
+		*/
+		clineAdobeRead = _adobeReader + " /n" + " /o";
+		for (kk = 0; kk < pdfFileList.size(); kk++) {
+			clineAdobeRead = clineAdobeRead + " \"" + pdfFileList.get(kk) + "\"";
+		}
+		//: DOES NOT work without threading
+		runnerAdobeRead() {
+			run() {
+				// do work:
+				runExternalApp(super.clineAdobeRead, false);
+			}
+			return this;
+		}
+		runnerAdobeRead = runnerAdobeRead();
+		// Starts thread on runnerAdobeRead.run()
+		new Thread(runnerAdobeRead).start();
+	}
+	//}}}
+	
+	//{{{ //~~~ closeSomeJEditViews
+	closeSomeJEditViews() {
+		allViews = jEdit.getViews();
+		for (t = 0; t < allViews.length; t++) {
+			tempViewTitle = allViews[t].title;
+			// "txt / XML"   // "init & TeX"
+			if ( tempViewTitle.substring(0,5).equals("txt /") || 
+				 tempViewTitle.substring(0,6).equals("init &") ) {
+				jEdit.closeView(allViews[t]);
+			}
+		}
+	}
+	//}}}
+
+	//{{{ //~~~ closeAllFiles
+	closeAllFiles() {
+		/**
+		https://stackoverflow.com/questions/5085491/closing-an-instance-of-acrobat-reader-from-command-line#
+		You cannot close the last open Acrobat window through the command line. From ancient history of
+		programming scripts for Acrobat, I believe that there is no way to do this in an Acrobat script,
+		either.
+		Ctrl+Q in the PDF viewer window;
+		*/
+		/**
+		https://stackoverflow.com/questions/6356340/killing-a-process-using-java
+		what about
+		Runtime.getRuntime().exec("taskkill /F /IM <processname>.exe")
+		?
+		https://www.reddit.com/r/techsupport/comments/2p60b5/cant_run_the_taskkill_command_on_a_batch_file/
+		*/
+		commandString = "cmd.exe" + " /C " + _taskkill + " /F" + " /IM ";
+		commandString = commandString + "AcroRd32.exe";
+		//
+		runClosingAll() {
+			run() {
+				runExternalApp(super.commandString, true);
+			}
+			return this;
+		}
+		runClosingAll = runClosingAll(); 
+		threadClosing = new Thread(runClosingAll);
+		try {
+			threadClosing.start();
+			threadClosing.join();  // Waits for this thread to die.
+		} catch (exception) {
+			alert(exception.toString());
+		}
+		//
+		closeSomeJEditViews();
+		allBuffers = jEdit.getBuffers();
+		for (t = 0; t < allBuffers.length; t++) {
+			if ( !allBuffers[t].getName().substring(0,7).equals("starter") ) {
+				jEdit.closeBuffer(view, allBuffers[t]);
+			}
+		}
+		buttonCloseFiles.setEnabled(false);
+		markButtonCloseFiles = false;
+		textFieldNotes.setText("");
+	}
+	//}}}
+	
+	//{{{ //~~~ openItemRelatedFiles
+	openItemRelatedFiles(_itemFolderName) {
+		// If an item is from SkyLaTeX:
+		// For check the following PDF files are opened:
+		// ...S100\\(.*?)_S100.1_aqf.pdf
+		// ...S[200|250]\\(.*?)\.dvidiff.pdf
+		// ...S[200|250]\\(.*?)\.dvidifftext.pdf
+		// In jEdit, the following files opened for diff:
+		// ...S[200|250]\\(.*?)\.tex.init
+		// ...S[200|250]\\(.*?)\.tex
+		// In another jEdit's 'view' the following files are opened:
+		// ...S[200|250]\\_queries\.txt
+		// ...S[200|250]\\_remarks\.txt   (if any)
+		// ...S[200|250]\\(.*?)_S[200|250]\.xml
+	
+		S200Found = false;
+		S250Found = false;
+		resupplyFound = false;
+		synctexFound = false;
+		//remarksFound = false;
+		reSync = "(.*)\\\\(.*?)\\.synctex\\.gz$";
+		// D:\_vtex-els--sqc\__M-N-factors-2018\05 May\01\YJMAA22235\yjmaa22235.synctex.gz
+		reAqf = "(.*)\\\\(S100\\\\)(.*?)(\\_S100\\.1\\_aqf)?\\.pdf$"; // YJMAA_22241_S100.1_aqf.pdf
+		// For some journals, "*.1_aqf.pdf" files are not included, e.g., BULSCI_2751.pdf.
+		// ..... _S1631073X18301523-20180515_120101_S100.zip
+		reSourceZip = "(.*)\\\\(S100\\\\)(.*?)\\_S100\\.zip$";
+		// order, final
+		// ...... \fss7429\S200\_S0165011418302847-20180518_063415_S200.xml
+		reOrder = "(.*)\\\\(S2[0|5]0\\\\)([^\\\\]*)\\_S2[0|5]0\\.xml$";
+		reDvidiff = "(.*)\\\\(S2[0|5]0\\\\)([^\\\\]*?)\\.dvidiff\\.pdf$"; // yjmaa22241.dvidiff.pdf  // (o?l?d?\\\\?)
+		reDvidifftext = "(.*)\\\\(S2[0|5]0\\\\)([^\\\\]*?)\\.dvidifftext\\.pdf$"; // yjmaa22241.dvidifftext.pdf  // (o?l?d?\\\\?)
+		// U:\orig_db\esch\yhmat\YHMAT2983\S200\YHMAT_2983-proofs-RSS_NS_02_C830_201807001495220243.pdf
+		reDigitalSuffix = "(.*)\\\\(S2[0|5]0\\\\)([^\\\\]+?)\\d{10,}\\.pdf$";
+		reTexinit = "(.*)\\\\(S2[0|5]0\\\\)([^\\\\]*?)\\.tex\\.init$"; // yjmaa22241.tex.init   // (o?l?d?\\\\?)
+		reTexout = "(.*)\\\\(S2[0|5]0\\\\)([^\\\\]*?)\\.tex$"; // yjmaa22241.tex   // (o?l?d?\\\\?)
+		reQueries = "(.*)\\\\(S2[0|5]0\\\\)\\_queries\\.txt$"; // _queries.txt   // (o?l?d?\\\\?)
+		reRemarks = "(.*)\\\\(S2[0|5]0\\\\)\\_remarks\\.txt$"; // _remarks.txt   // (o?l?d?\\\\?)
+		//
+		reS200 = "(.*)\\\\(S200\\\\)(.*)$";
+		reS250 = "(.*)\\\\(S250\\\\)(.*)$";
+		reResupply = "(.*)RESUPPLY(.*)$";
+	
+		// Multiple flags must be combined using the or operator (|).
+		ptnSync = Pattern.compile(reSync, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		ptnAqf = Pattern.compile(reAqf, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		ptnOrder = Pattern.compile(reOrder, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		ptnSourceZip = Pattern.compile(reSourceZip, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		ptnDvidiff = Pattern.compile(reDvidiff, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		ptnDvidifftext = Pattern.compile(reDvidifftext, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		ptnDigitalSuffix = Pattern.compile(reDigitalSuffix, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		ptnTexinit = Pattern.compile(reTexinit, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		ptnTexout = Pattern.compile(reTexout, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		ptnQueries = Pattern.compile(reQueries, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		ptnRemarks = Pattern.compile(reRemarks, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		//
+		ptnS200 = Pattern.compile(reS200, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		ptnS250 = Pattern.compile(reS250, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		ptnResupply = Pattern.compile(reResupply, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+	
+		mtchSync;
+		mtchAqf;
+		mtchOrder;
+		mtchSourceZip;
+		mtchDvidiff;
+		mtchDvidifftext;
+		mtchDigitalSuffix;
+		mtchTexinit;
+		mtchTexout;
+		mtchQueries;
+		mtchRemarks;
+		//
+		mtchS200;
+		mtchS250;
+		mtchResupply;
+	
+		// If not in SkyLaTeX:
+		reTxt = "(.*)\\\\(S2[0|5]0\\\\).*\\.txt$"; // *.txt   // (o?l?d?\\\\?)
+		rePdf = "(.*)\\\\(S2[0|5]0\\\\).*\\.pdf$"; // *.pdf   // (o?l?d?\\\\?)
+		reVtxt = ".*V\\d\\.txt$";                   // *V\d.txt   // (o?l?d?\\\\?)
+		ptnTxt = Pattern.compile(reTxt, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		ptnPdf = Pattern.compile(rePdf, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		ptnVtxt = Pattern.compile(reVtxt, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		mtchTxt;
+		mtchPdf;
+		mtchVtxt;
+		//
+		initTeX;
+		corrTeX;
+		initBuffer;
+		corrBuffer;
+		pdfs = new ArrayList();
+		txtxmls = new ArrayList();
+		//
+		pathStr = textFieldPathToItem.getText();
+		// pathStr is a string for a path, but we need File type
+		argf =  new File(pathStr);
+		qC.filesTreeArray.clear();
+		directoryContentsArray(argf);
+		//
+		qhh;
+		qhhs;
+		for (k = 0; k < qC.filesTreeArray.size(); k++) {
+			qhh = qC.filesTreeArray.get(k);
+			// qhh is of type HashMap
+			// qhh.name is java.io.File, not String
+			qhhs = qhh.get("name").toString();
+			mtchSync = ptnSync.matcher(qhhs);
+			if (mtchSync.find()) {
+				synctexFound = true;
+			}
+			mtchS200 = ptnS200.matcher(qhhs);
+			mtchS250 = ptnS250.matcher(qhhs);
+			mtchResupply = ptnResupply.matcher(qhhs);
+			if (mtchS200.find()) {
+				S200Found = true;
+			}
+			if (mtchS250.find()) {
+				S250Found = true;
+			}
+			if (mtchResupply.find()) {
+				resupplyFound = true;
+			}
+		}
+		//after loop
+		if (S200Found && S250Found) {
+			textFieldNotes.setText("Both S200 and S250 found.");
+		}
+		if (resupplyFound) {
+			textFieldNotes.setText("RESUPPLY found.");
+		}
+		//
+		buffersB;
+		if (synctexFound) {
+			for (k = 0; k < qC.filesTreeArray.size(); k++) {
+				qhh = qC.filesTreeArray.get(k);
+				// qhh.name is java.io.File, not String
+				qhhs = qhh.get("name").toString();
+				mtchAqf = ptnAqf.matcher(qhhs);
+				if (mtchAqf.find()) {
+					//println("aqf:  " + qhhs);
+					pdfs.add(qhhs);
+				} else {
+					mtchDvidiff = ptnDvidiff.matcher(qhhs);
+					if (mtchDvidiff.find()) {
+						//println("dvidiff: " + qhhs);
+						pdfs.add(qhhs);
+					} else {
+						mtchDvidifftext = ptnDvidifftext.matcher(qhhs);
+						if (mtchDvidifftext.find()) {
+							//println("dvidifftext: " + qhhs);
+							pdfs.add(qhhs);
+						} else {
+							mtchDigitalSuffix = ptnDigitalSuffix.matcher(qhhs);
+							if (mtchDigitalSuffix.find()) {
+								pdfs.add(qhhs);
+							} else {
+								mtchTexinit = ptnTexinit.matcher(qhhs);
+								if (mtchTexinit.find()) {
+									//println("tex.init: " + qhhs);
+									initTeX = qhhs;
+								} else {
+									mtchTexout = ptnTexout.matcher(qhhs);
+									if (mtchTexout.find()) {
+										//println("tex: " + qhhs);
+										corrTeX = qhhs;
+									} else {
+										mtchQueries = ptnQueries.matcher(qhhs);
+										if (mtchQueries.find()) {
+											//println("_queries: " + qhhs);
+											txtxmls.add(qhhs);
+										} else {
+											mtchRemarks = ptnRemarks.matcher(qhhs);
+											if (mtchRemarks.find()) {
+												//println("_remarks: " + qhhs);
+												txtxmls.add(qhhs);
+											} else {
+												mtchOrder = ptnOrder.matcher(qhhs);
+												if (mtchOrder.find()) {
+													//println("order: " + qhhs);
+													txtxmls.add(qhhs);
+												} else {
+													mtchSourceZip = ptnSourceZip.matcher(qhhs);
+													if (mtchSourceZip.find()) {
+														//println("source zip: " + qhhs);
+														//txtxmls.add(qhhs);
+													}
+				} } } } } } } } }
+			}
+			// Now trying to open PDF files; earlier than files in jEdit:
+			viewPDFFilesAdobeReader(pdfs);
+			closeSomeJEditViews();
+			// Open LaTeX files in jEdit
+			newEmptyA = jEdit.newFile(view); // Buffer
+			viewTeX = jEdit.newView(view, newEmptyA, newVcfgA);
+			viewTeX.setUserTitle("init & TeX");
+			// JDiff episode:
+			initBuffer = jEdit.openFile(viewTeX, initTeX);
+			corrBuffer = jEdit.openFile(viewTeX, corrTeX);
+			viewTeX.splitVertically();
+			editPanes = viewTeX.getEditPanes();
+			editPanes[0].setBuffer(initBuffer);
+			editPanes[1].setBuffer(corrBuffer);
+			jEdit.getAction("toggle-dual-diff").invoke(viewTeX);
+			//
+			// other (TXT, XML) files
+			newEmptyB = jEdit.newFile(view); // Buffer
+			viewTXml = jEdit.newView(view, newEmptyB, newVcfgB);
+			viewTXml.setUserTitle("txt / XML");
+			for (t = 0; t < txtxmls.size(); t++) {
+				jEdit.openFile(viewTXml, txtxmls.get(t));
+			}
+			buffersB = viewTXml.getBuffers();
+			// Returns an array of all open buffers from any View.
+			for (t = 0; t < buffersB.length; t++) {
+				// focus is set on _queries.txt
+				if (buffersB[t].getName().equals("_queries.txt")) {
+					viewTXml.goToBuffer(buffersB[t]);
+				}
+			}
+		}
+		else {
+			textFieldNotes.setText("SkyLaTeX output files not found.");
+			for (k = 0; k < qC.filesTreeArray.size(); k++) {
+				qhh = qC.filesTreeArray.get(k);
+				// qhh.name is java.io.File, not String
+				qhhs = qhh.get("name").toString();
+				mtchAqf = ptnAqf.matcher(qhhs);
+				if (mtchAqf.find()) {
+					pdfs.add(qhhs);
+				} else {
+					mtchPdf = ptnPdf.matcher(qhhs);
+					if (mtchPdf.find()) {
+						pdfs.add(qhhs);
+					} else {
+						mtchOrder = ptnOrder.matcher(qhhs);
+						if (mtchOrder.find()) {
+							txtxmls.add(qhhs);
+						} else {
+							mtchTxt = ptnTxt.matcher(qhhs);
+							if (mtchTxt.find()) {
+								txtxmls.add(qhhs);
+							} else {
+								mtchSourceZip = ptnSourceZip.matcher(qhhs);
+								if (mtchSourceZip.find()) {
+									//println("source zip: " + qhhs);
+									//txtxmls.add(qhhs);
+								}
+				} } } }
+			}
+			// Now trying to open PDF files; earlier than files in jEdit:
+			viewPDFFilesAdobeReader(pdfs);
+			closeSomeJEditViews();
+			// other (TXT, XML) files
+			newEmpty = jEdit.newFile(view); // Buffer
+			viewTXml = jEdit.newView(view, newEmpty, newVcfgB);
+			viewTXml.setUserTitle("txt / XML");
+			for (t = 0; t < txtxmls.size(); t++) {
+				jEdit.openFile(viewTXml, txtxmls.get(t));
+			}
+			buffersB = viewTXml.getBuffers();
+			for (t = 0; t < buffersB.length; t++) {
+				// focus is set on _V1.txt
+				mtchVtxt = ptnVtxt.matcher(buffersB[t].getName());
+				if (mtchVtxt.find()) {
+					viewTXml.goToBuffer(buffersB[t]);
+				}
+			}
+		}
+		//
+		labelItemId.setText(getItemName(_itemFolderName));
+		buttonCloseFiles.setEnabled(true);
+		qC.markButtonCloseFiles = true;
+	}
+	// }}}
+	
+// Listeners:
+	//{{{ //~~~ buttonChooseItemHandler
+	buttonChooseItemHandler = new ActionListener() {
+		actionPerformed(evnt) {
+			if (!qC.isMasterFolderChosen) {
+				alert("Master Folder (QC Files) is not chosen.");
+				return;
+			}
+			pathD;
+			startLocationD = qC.textFieldMasterFolder.getText(); 
+			dialogTitleD = "Choose Folder for Item";
+			chooserD = new JFileChooser(startLocationD);
+			// https://docs.oracle.com/javase/7/docs/api/javax/swing/JFileChooser.html
+			chooserD.setOpaque(true);
+			chooserD.setBackground(openFilesColor);
+			chooserD.setDialogTitle(dialogTitleD);
+			chooserD.setApproveButtonText("O P E N");
+			chooserD.setApproveButtonToolTipText("Open prescribed files belonging to the item.");
+			chooserD.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			// we want "15 lines x 10 columns" layout of items in 'O P E N' window"
+			chooserD.setPreferredSize(new Dimension(1100, 510));  // (780, 640) 
+			returnValueD = chooserD.showOpenDialog(null);
+			if (returnValueD == JFileChooser.APPROVE_OPTION) {
+				pathD = chooserD.getSelectedFile().getAbsolutePath();
+				textFieldPathToItem.setText(pathD);
+				nameItemFolder = pathD;
+				for (ip = 0; ip < qC.masterFolderItemsList.length; ip++) {
+					if (nameItemFolder.equals(qC.masterFolderItemsList[ip].toString())) {
+						currentItemPosition = ip + 1; // 1-based counter
+						qC.textFieldItemPosition.setText(currentItemPosition.toString());
+					}
+				}
+				if (currentItemPosition >= qC.masterFolderItemsList.length) {
+					alert("This will be the last item in the master folder.");
+				}
+				//
+				openItemRelatedFiles(pathD);
+			}
+			//
+			if (qC.isExcelChosen) {
+				nameExcelFile = qC.textFieldExcelFile.getText();
+				qC.exclObj = ExcelObj(nameExcelFile);  // no new??
+				qC.exclObj.getSpreadsheet();
+				qC.exclObj.getItemRow(labelItemId.getText());  // here we have item name
+				currentPageType = qC.exclObj.getPageType();
+				textFieldPageType.setText(currentPageType);
+				////textFieldPageTypeMini.setText(currentPageType);
+				qC.isExcelFileWritten = false;
+				buttonWriteToExcel.setEnabled(true);
+				////buttonWriteToExcelMini.setEnabled(true);
+			} else {
+				textFieldPageType.setText("Excel QC List (QC Files) is not chosen.");
+			}
+			////miniQCFrame();
+		}
+	};
+	//}}}
+	
+	//{{{ //~~~ buttonNextItemHandler
+	buttonNextItemHandler = new ActionListener() {
+		// actions needed: (1) close all files; (2) open next item files
+		actionPerformed(evnt) {
+			if (qC.markButtonCloseFiles) {
+				closeAllFiles();
+			}
+			if (currentItemPosition + 1 >= qC.masterFolderItemsList.length) {
+				alert("This will be the last item in the master folder.");
+			}
+			//
+			pathD = qC.masterFolderItemsList[currentItemPosition].toString();
+			nameItemFolder = pathD;
+			textFieldPathToItem.setText(pathD);
+			currentItemPosition = currentItemPosition + 1;
+			qC.textFieldItemPosition.setText(currentItemPosition.toString());
+			openItemRelatedFiles(pathD);
+			//
+			if (qC.isExcelChosen) {
+				if (!qC.isExcelFileWritten) {
+					pageNumber = textFieldPageNumber.getText();
+					qC.exclObj.acceptPageNumber(pageNumber);
+					qC.exclObj.writeToFile();
+					textFieldPageType.setText("");
+					textFieldPageNumber.setText("");
+					////textFieldPageTypeMini.setText("");
+					////textFieldPageNumberMini.setText("");
+					qC.isExcelFileWritten = true;
+					buttonWriteToExcel.setEnabled(true);
+					////buttonWriteToExcelMini.setEnabled(true);
+				}
+				//
+				qC.exclObj.getSpreadsheet();
+				qC.exclObj.getItemRow(labelItemId.getText());  // here we have item name
+				currentPageType = qC.exclObj.getPageType();
+				textFieldPageType.setText(currentPageType);
+				textFieldPageNumber.setText("");
+				////textFieldPageTypeMini.setText(currentPageType);
+				////textFieldPageNumberMini.setText("");
+				qC.isExcelFileWritten = false;
+				buttonWriteToExcel.setEnabled(true);
+				////buttonWriteToExcelMini.setEnabled(true);
+			} else {
+				textFieldPageType.setText("Excel QC List (QC Files) is not chosen.");
+			}
+		}
+	};
+	//}}}
+	
+	//{{{ //~~~ buttonNextItemMiniHandler
+	/**********
+	buttonNextItemMiniHandler = new ActionListener() {
+		actionPerformed(evnt) {
+			buttonNextItem.doClick();
+		}
+	};
+	*/
+	//}}}
+	
+	//{{{ //~~~ buttonCloseFilesHandler
+	buttonCloseFilesHandler = new ActionListener() {
+		actionPerformed(evnt) {
+			closeAllFiles();
+		}
+	};
+	//}}}
+	
+	//{{{ //~~~ buttonOrigFilesHandler
+	buttonOrigFilesHandler = new ActionListener() {
+		// buttonOrigFiles has to unzip files of, say,
+		// ...\aescte4647\S100\_S1270963817321466-20180702_091021_S100.zip
+		// into temporary subfolder 
+		// ...\aescte4647\S100\_S100\
+		// and then open all PDF files in it
+		actionPerformed(evnt) {
+			reS100zip = "(.*\\\\S100)(.*?)(_S100\\.zip)$"; 
+			ptnS100zip = Pattern.compile(reS100zip, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+			mtchS100zip;
+			//
+			pathString = textFieldPathToItem.getText();
+			pathString = pathString + "\\S100";
+			argFileS100 =  new File(pathString);
+			qC.filesTreeArray.clear();
+			directoryContentsArray(argFileS100);
+			//
+			for (j = 0; j < qC.filesTreeArray.size(); j++) {
+				thh = qC.filesTreeArray.get(j);
+				// thh.name is java.io.File, not String
+				thhs = thh.get("name").toString();
+				mtchS100zip = ptnS100zip.matcher(thhs);
+				if (mtchS100zip.find()) {
+					tempDir = mtchS100zip.group(1) + "\\_S100";
+					extractArchiveSevenZ(thhs, tempDir);
+				}
+			}
+			// List of PDF files in the subfolder ...\_S100
+			argTempDir =  new File(tempDir);
+			qC.filesTreeArray.clear();
+			directoryContentsArray(argTempDir);
+			//
+			// List of orig. PDF files:
+			pdfsS100 = new ArrayList(); 
+			for (j = 0; j < qC.filesTreeArray.size(); j++) {
+				thh = qC.filesTreeArray.get(j);
+				// thh.name is java.io.File, not String
+				thhs = thh.get("name").toString();
+				// https://howtodoinjava.com/java/string/get-last-4-characters/
+				if (thhs.substring(thhs.length() - 4).equals(".pdf")) {
+					pdfsS100.add(thhs);
+				}
+			}
+			// Now trying to open S100 PDF files
+			if (pdfsS100.size() == 0) {
+				alert("No S100 PDFs found.");
+			}
+			viewPDFFilesAdobeReader(pdfsS100);
+		}
+	};
+	//}}}
+	
+	//{{{ //~~~ buttonWriteToExcelHandler
+	buttonWriteToExcelHandler = new ActionListener() {
+		actionPerformed(evnt) {
+			pageNumber;
+			if (qC.isExcelChosen) {
+				pageNumber = textFieldPageNumber.getText();
+				qC.exclObj.acceptPageNumber(pageNumber);
+				if (!qC.isExcelFileWritten) {
+					qC.exclObj.writeToFile();
+					textFieldPageType.setText("");
+					textFieldPageNumber.setText("");
+					qC.isExcelFileWritten = true;
+					buttonWriteToExcel.setEnabled(false);
+					////textFieldPageTypeMini.setText("");
+					////textFieldPageNumberMini.setText("");
+					////buttonWriteToExcelMini.setEnabled(false);
+				}
+			}
+		}
+	};
+	//}}}
+	
+	//{{{ //~~~ buttonWriteToExcelMiniHandler
+	/*****
+	buttonWriteToExcelMiniHandler = new ActionListener() {
+		actionPerformed(evnt) {
+			pageNumberMini;
+			pageNumberMini = textFieldPageNumberMini.getText();
+			textFieldPageNumber.setText(pageNumberMini);
+			buttonWriteToExcel.doClick();
+		}
+	};  
+	*/
+	//}}} //
+
+	
+	buttonChooseItem.addActionListener(buttonChooseItemHandler);
+	buttonNextItem.addActionListener(buttonNextItemHandler);
+	buttonCloseFiles.addActionListener(buttonCloseFilesHandler);
+	buttonOrigFiles.addActionListener(buttonOrigFilesHandler);
+	////buttonNextItemMini.addActionListener(buttonNextItemMiniHandler);
+	buttonWriteToExcel.addActionListener(buttonWriteToExcelHandler);
+	////buttonWriteToExcelMini.addActionListener(buttonWriteToExcelMiniHandler);
+	//
+	return paneQcToolHelper;
+}
+
+
+objectPaneAbout() {
+	aboutPane = new JPanel();
+	aboutTextArea = new JTextArea();
+	aboutTextArea.setWrapStyleWord(true);
+	scrollPane = new JScrollPane(aboutTextArea);
+	//scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED); // default
+	//scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);  // default
+	// ...
+	aboutString = "=STARTER = BSH = 2020-04-28="; 
+	aboutString = aboutString + "\nLatest changes:"; 
+	aboutString = aboutString + "\n2019.11.25: Pane 'QC Tools', minor change.";
+	aboutString = aboutString + "\n2019.11.07-11: Pane 'QC Files' added.";
+	aboutString = aboutString + "\n2019.11.05: Excel file is in work.";
+	aboutString = aboutString + "\n2019.09.29-30: Button 'Next'.";
+	aboutString = aboutString + "\nEarly history: 2017.01.03-2018.09.10; 2018.11.23";
+	aboutTextArea.append(aboutString);
+	aboutPane.add(scrollPane);
+	//return scrollPane;
+	return aboutPane;
+}
+
+// === Conveniency object for the main panel of the GUI:
+objectPanelMain()
+{
+	panelForTabbedPane = new JPanel();
+	// for plugin, the overall panel must be just JPanel
+	tabPaneMain = new JTabbedPane();
+	//tabPane.setTabPlacement(TOP); // nutylima
+	// ...,tabPlacement=TOP]
+	pnArticleData = objectPaneArticleData();
+	tabPaneMain.addTab("Article Data", pnArticleData);
+	//
+	pnQcTool = objectPaneQcTool();
+	tabPaneMain.addTab("QC Tool", pnQcTool);
+	//
+	pnQcFiles = objectPaneQcFiles();
+	tabPaneMain.addTab("QC Files", pnQcFiles);
+	//
+	pnAbout = objectPaneAbout();
+	tabPaneMain.addTab("About", pnAbout);
+
+	tabPaneMain.setSelectedComponent(pnQcTool);
+	panelForTabbedPane.add(tabPaneMain);
+	return panelForTabbedPane;
+}
+
+objectStarterFrame() {
+	starterFrame = new JFrame("=STARTER = BSH = 2020-04-28=");
+	starterFrame.setSize(400,300);  // say, but we will see later
+	// Position the frame:
+	ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+	defaultScreen = ge.getDefaultScreenDevice();
+	rect = defaultScreen.getDefaultConfiguration().getBounds();
+	frameWidth = starterFrame.getWidth();
+	// .getMaxX returns double, but .setLocation requires (int, int)
+	// -125 due to system try (task bar) on left of the screen
+	// -140 is better on the remote desktop 
+	x = (int) rect.getMaxX() - frameWidth - 140;
+	y = 0;
+	starterFrame.setLocation(x, y);
+	
+	panelMain = objectPanelMain();
+	// dimensions are chosen for 1280x720 by trial:
+	// panelM.setPreferredSize(new Dimension(550, 293));
+	// panelM.setMaximumSize(new Dimension(550, 293));
+	// panelM.setMinimumSize(new Dimension(550, 293));
+		
+	starterFrame.getContentPane().add(panelMain); 
+		//, _BorderLayout.CENTER);
+		// frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
+		// In this way, closing this frame, jEdit is not closed:
+		//frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		//frame.setDefaultCloseOperation(2);
+		// 2 corresponds DISPOSE_ON_CLOSE, see
+		// http://docs.oracle.com/javase/7/docs/api/constant-values.html#javax.swing.WindowConstants.DISPOSE_ON_CLOSE
+	starterFrame.pack();
+	// http://stackoverflow.com/questions/297938/always-on-top-windows-with-java
+	// Sets the window to be "always on top"
+	//***starterFrame.setAlwaysOnTop(true);
+	
+	// minimal settings to make the frame viewable:
+	starterFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+	starterFrame.setVisible(true);
+}
+	
+objectStarterFrame();
+
+/* :folding=explicit:collapseFolds=1:tabSize=4:indentSize=4:noTabs=false: */
