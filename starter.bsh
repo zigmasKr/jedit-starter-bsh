@@ -1276,10 +1276,10 @@ objectPaneQcToolHelper()
 		reQueries = "(.*)\\\\(S2[0|5]0\\\\)\\_queries\\.txt$"; // _queries.txt   // (o?l?d?\\\\?)
 		reRemarks = "(.*)\\\\(S2[0|5]0\\\\)\\_remarks\\.txt$"; // _remarks.txt   // (o?l?d?\\\\?)
 		//
+		reS2Resupply = "(.*)S2[0|5]0RESUPPLY(.*)$";
 		reS200 = "(.*)\\\\(S200\\\\)(.*)$";
 		reS250 = "(.*)\\\\(S250\\\\)(.*)$";
-		reResupply = "(.*)RESUPPLY(.*)$";
-	
+		
 		// Multiple flags must be combined using the or operator (|).
 		ptnSync = Pattern.compile(reSync, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 		ptnAqf = Pattern.compile(reAqf, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
@@ -1293,10 +1293,10 @@ objectPaneQcToolHelper()
 		ptnQueries = Pattern.compile(reQueries, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 		ptnRemarks = Pattern.compile(reRemarks, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 		//
+		ptnS2Resupply = Pattern.compile(reS2Resupply, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 		ptnS200 = Pattern.compile(reS200, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 		ptnS250 = Pattern.compile(reS250, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
-		ptnResupply = Pattern.compile(reResupply, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
-	
+		
 		mtchSync;
 		mtchAqf;
 		mtchOrder;
@@ -1309,9 +1309,9 @@ objectPaneQcToolHelper()
 		mtchQueries;
 		mtchRemarks;
 		//
+		mtchS2Resupply;
 		mtchS200;
 		mtchS250;
-		mtchResupply;
 	
 		// If not in SkyLaTeX:
 		reTxt = "(.*)\\\\(S2[0|5]0\\\\).*\\.txt$"; // *.txt   // (o?l?d?\\\\?)
@@ -1337,6 +1337,7 @@ objectPaneQcToolHelper()
 		qC.filesTreeArray.clear();
 		directoryContentsArray(argf);
 		//
+		textNotes = "";
 		qhh;
 		qhhs;
 		for (k = 0; k < qC.filesTreeArray.size(); k++) {
@@ -1348,26 +1349,32 @@ objectPaneQcToolHelper()
 			if (mtchSync.find()) {
 				synctexFound = true;
 			}
+			mtchS2Resupply = ptnS2Resupply.matcher(qhhs);
 			mtchS200 = ptnS200.matcher(qhhs);
 			mtchS250 = ptnS250.matcher(qhhs);
-			mtchResupply = ptnResupply.matcher(qhhs);
+			if (mtchS2Resupply.find()) {
+				//alert("Resupply: " + qhhs);
+				resupplyFound = true;
+			}
 			if (mtchS200.find()) {
 				S200Found = true;
 			}
 			if (mtchS250.find()) {
 				S250Found = true;
 			}
-			if (mtchResupply.find()) {
-				resupplyFound = true;
-			}
 		}
 		//after loop
-		if (S200Found && S250Found) {
-			textFieldNotes.setText("Both S200 and S250 found.");
+		if (S250Found && resupplyFound) {
+			textNotes = textNotes + "S250RESUPPLY found. ";
 		}
-		if (resupplyFound) {
-			textFieldNotes.setText("RESUPPLY found.");
+		if (S200Found && resupplyFound) {
+			textNotes = textNotes + "S200RESUPPLY found. ";
+		} else {
+			if (S200Found && S250Found) {
+				textNotes = textNotes + "S200 and S250 found. ";
+			}
 		}
+		textFieldNotes.setText(textNotes);
 		//
 		buffersB;
 		if (synctexFound) {
@@ -1459,7 +1466,8 @@ objectPaneQcToolHelper()
 			}
 		}
 		else {
-			textFieldNotes.setText("SkyLaTeX output files not found.");
+			textNotes = textNotes + "SkyLaTeX not found.";
+			textFieldNotes.setText(textNotes);
 			for (k = 0; k < qC.filesTreeArray.size(); k++) {
 				qhh = qC.filesTreeArray.get(k);
 				// qhh.name is java.io.File, not String
@@ -1747,7 +1755,7 @@ objectPaneAbout() {
 	//scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED); // default
 	//scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);  // default
 	// ...
-	aboutString = "=STARTER = BSH = 2020-04-28="; 
+	aboutString = "=STARTER = BSH = 2020-06-18="; 
 	aboutString = aboutString + "\nLatest changes:"; 
 	aboutString = aboutString + "\n2019.11.25: Pane 'QC Tools', minor change.";
 	aboutString = aboutString + "\n2019.11.07-11: Pane 'QC Files' added.";
