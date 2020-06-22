@@ -1314,14 +1314,17 @@ objectPaneQcToolHelper()
 		mtchS250;
 	
 		// If not in SkyLaTeX:
-		reTxt = "(.*)\\\\(S2[0|5]0\\\\).*\\.txt$"; // *.txt   // (o?l?d?\\\\?)
-		rePdf = "(.*)\\\\(S2[0|5]0\\\\).*\\.pdf$"; // *.pdf   // (o?l?d?\\\\?)
-		reVtxt = ".*V\\d\\.txt$";                   // *V\d.txt   // (o?l?d?\\\\?)
-		ptnTxt = Pattern.compile(reTxt, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		rePdf = "(.*)\\\\(S2[0|5]0\\\\).*\\.pdf$"; // .*.pdf
+		reTxt = "(.*)\\\\(S2[0|5]0\\\\).*\\.txt$"; // .*.txt  // full path
+		reTxtFn = ".*\\.txt$";                     // .*.txt  // file name
+		reVtxt = ".*V\\d\\.txt$";                  // .*V\d.txt
 		ptnPdf = Pattern.compile(rePdf, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		ptnTxt = Pattern.compile(reTxt, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		ptnTxtFn = Pattern.compile(reTxtFn, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 		ptnVtxt = Pattern.compile(reVtxt, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
-		mtchTxt;
 		mtchPdf;
+		mtchTxt;
+		mtchTxtFn;
 		mtchVtxt;
 		//
 		initTeX;
@@ -1507,10 +1510,15 @@ objectPaneQcToolHelper()
 			}
 			buffersB = viewTXml.getBuffers();
 			for (t = 0; t < buffersB.length; t++) {
-				// focus is set on _V1.txt
+				// focus is set on _V1.txt; or on .txt:
 				mtchVtxt = ptnVtxt.matcher(buffersB[t].getName());
 				if (mtchVtxt.find()) {
 					viewTXml.goToBuffer(buffersB[t]);
+				} else {
+					mtchTxtFn = ptnTxtFn.matcher(buffersB[t].getName());
+					if (mtchTxtFn.find()) {
+						viewTXml.goToBuffer(buffersB[t]);
+					}
 				}
 			}
 		}
@@ -1755,7 +1763,7 @@ objectPaneAbout() {
 	//scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED); // default
 	//scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);  // default
 	// ...
-	aboutString = "=STARTER = BSH = 2020-06-18="; 
+	aboutString = "=STARTER = BSH = 2020-06-22="; 
 	aboutString = aboutString + "\nLatest changes:"; 
 	aboutString = aboutString + "\n2019.11.25: Pane 'QC Tools', minor change.";
 	aboutString = aboutString + "\n2019.11.07-11: Pane 'QC Files' added.";
@@ -1794,7 +1802,7 @@ objectPanelMain()
 }
 
 objectStarterFrame() {
-	starterFrame = new JFrame("=STARTER = BSH = 2020-04-28=");
+	starterFrame = new JFrame("=STARTER = BSH = 2020-06-22=");
 	starterFrame.setSize(400,300);  // say, but we will see later
 	// Position the frame:
 	ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
