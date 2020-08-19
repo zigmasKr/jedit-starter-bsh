@@ -39,7 +39,13 @@ jEditMacros = new Macros();
 alert(arg) {
 	jEditMacros.message(view, arg);
 }
+confirmon(prompt) {
+	jEditMacros.confirm(view, prompt, 
+		JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+}
+
 //alert("mumu");
+//confirmon("auau");
 
 // === ARTICLE DATA ===
 
@@ -1159,21 +1165,35 @@ objectPaneQcToolHelper()
 		/o Open Acrobat, suppressing the open file dialog.
 		/h Open Acrobat in hidden mode.
 		*/
-		clineAdobeRead = _adobeReader + " /n" + " /o";
-		for (kk = 0; kk < pdfFileList.size(); kk++) {
-			clineAdobeRead = clineAdobeRead + " \"" + pdfFileList.get(kk) + "\"";
-		}
-		//: DOES NOT work without threading
-		runnerAdobeRead() {
-			run() {
-				// do work:
-				runExternalApp(super.clineAdobeRead, false);
+		// 2020-08-18: control over number of PDFs:
+		numberPDFs = pdfFileList.size();
+		goon = true;
+		if (numberPDFs >= 10) {
+			answer = confirmon("Number of S100 PDFs found: " + numberPDFs.toString() + ". Proceed to open?");
+			if (answer == 0) {
+				goon  = true;
+			} else {
+				goon = false;
 			}
-			return this;
 		}
-		runnerAdobeRead = runnerAdobeRead();
-		// Starts thread on runnerAdobeRead.run()
-		new Thread(runnerAdobeRead).start();
+		if (goon) {	
+			// if the answer is 'yes':
+			clineAdobeRead = _adobeReader + " /n" + " /o";
+			for (kk = 0; kk < numberPDFs; kk++) {
+				clineAdobeRead = clineAdobeRead + " \"" + pdfFileList.get(kk) + "\"";
+			}
+			//: DOES NOT work without threading
+			runnerAdobeRead() {
+				run() {
+					// do work:
+					runExternalApp(super.clineAdobeRead, false);
+				}
+				return this;
+			}
+			runnerAdobeRead = runnerAdobeRead();
+			// Starts thread on runnerAdobeRead.run()
+			new Thread(runnerAdobeRead).start();
+		} 
 	}
 	//}}}
 	
@@ -1237,6 +1257,58 @@ objectPaneQcToolHelper()
 		textFieldNotes.setText("");
 	}
 	//}}}
+	
+	validSourceFilename(fname) {
+		alert(fname);
+		answer = true;
+		reCreditAuthor = "(.*\\\\credit.*?author.*?)(\\.pdf)$";
+		reDeclarationInter = "(.*\\\\declaration.*?interest.*?)(\\.pdf)$";
+		reAuthorStatement = "(.*\\\\author.*?statement.*?)(\\.pdf)$";
+		reSupplementary = "(.*\\\\supplement.*?material.*?)(\\.pdf)$";
+		reDeclaration = "(.*\\\\declaration.*?)(\\.pdf)$";
+		reHighlights = "(.*\\\\highlight.*?)(\\.pdf)$";
+		reHighlightsE = "(.*\\\\.*?elsevier.*?highlight.*?)(\\.pdf)$";
+		//
+		ptnCreditAuthor = Pattern.compile(reCreditAuthor, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		ptnDeclarationInter = Pattern.compile(reDeclarationInter, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		ptnAuthorStatement = Pattern.compile(reAuthorStatement, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		ptnSupplementary = Pattern.compile(reSupplementary, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		ptnDeclaration = Pattern.compile(reDeclaration, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		ptnHighlights = Pattern.compile(reHighlights, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		ptnHighlightsE = Pattern.compile(reHighlightsE, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		//
+		mtchCreditAuthor = ptnCreditAuthor.matcher(fname);
+		if (mtchCreditAuthor.find()) {
+			answer = false;
+		} else {
+			mtchDeclarationInter = ptnDeclarationInter.matcher(fname);
+			if (mtchDeclarationInter.find()) {
+				answer = false;
+			} else {
+				mtchAuthorStatement = ptnAuthorStatement.matcher(fname);
+				if (mtchAuthorStatement.find()) {
+					answer = false;
+				} else {
+					mtchSupplementary = ptnSupplementary.matcher(fname);
+					if (mtchSupplementary.find()) {
+						answer = false;
+					} else {
+						mtchDeclaration = ptnDeclaration.matcher(fname);
+						if (mtchDeclaration.find()) {
+							answer = false;
+						} else {
+							mtchHighlights = ptnHighlights.matcher(fname);
+							if (mtchHighlights.find()) {
+								answer = false;
+							} else {
+								mtchHighlightsE = ptnHighlightsE.matcher(fname);
+								if (mtchHighlightsE.find()) {
+									answer = false;
+								} 
+		} } } } } }
+		//		
+		return answer;
+	}
 	
 	//{{{ //~~~ openItemRelatedFiles
 	openItemRelatedFiles(_itemFolderName) {
@@ -1663,11 +1735,21 @@ objectPaneQcToolHelper()
 		// and then open all PDF files in it
 		actionPerformed(evnt) {
 			reS100zip = "(.*\\\\S100)(.*?)(_S100\\.zip)$"; 
+			// typical:
+			// D:\...\YJMAA124243\S100\_S0022247X20304054-20200521_054307_S100.zip
 			ptnS100zip = Pattern.compile(reS100zip, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 			mtchS100zip;
+			reS100zzip = "(.*\\\\S100)(.*?)_S100\\\\(S.*\\.zip)$";
+			// typical:
+			// 
+			ptnS100zzip = Pattern.compile(reS100zzip, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+			mtchS100zzip;
 			//
 			pathString = textFieldPathToItem.getText();
+			// e.g., D:\vtex\_sqc_2020\05 MN May\0\YJFAN108629
+			/////
 			pathString = pathString + "\\S100";
+			// e.g., D:\vtex\_sqc_2020\05 MN May\0\YJFAN108629\S100
 			argFileS100 =  new File(pathString);
 			qC.filesTreeArray.clear();
 			directoryContentsArray(argFileS100);
@@ -1677,9 +1759,12 @@ objectPaneQcToolHelper()
 				// thh.name is java.io.File, not String
 				thhs = thh.get("name").toString();
 				mtchS100zip = ptnS100zip.matcher(thhs);
+				// e.g., D:\...\YJFAN108629\S100\_S0022123620301725-20200512_054129_S100.zip
 				if (mtchS100zip.find()) {
 					tempDir = mtchS100zip.group(1) + "\\_S100";
 					extractArchiveSevenZ(thhs, tempDir);
+					// unzip to the folder:
+					// D:\vtex\_sqc_2020\05 MN May\0\YJFAN108629\S100\_S100
 				}
 			}
 			// List of PDF files in the subfolder ...\_S100
@@ -1695,14 +1780,64 @@ objectPaneQcToolHelper()
 				thhs = thh.get("name").toString();
 				// https://howtodoinjava.com/java/string/get-last-4-characters/
 				if (thhs.substring(thhs.length() - 4).equals(".pdf")) {
-					pdfsS100.add(thhs);
+					// Here one can filter out some pdf file's names:
+					if (validSourceFilename(thhs)) {
+						pdfsS100.add(thhs);
+					}
 				}
 			}
+			/////
 			// Now trying to open S100 PDF files
+			answer = 1;
+			// the folder:
+			// D:\vtex\_sqc_2020\05 MN May\0\YJFAN108629\S100\_S100
+			// may contain only zip, like this:
+			// D:\...\YJFAN108629\S100\_S100\S0022123620301725.zip
 			if (pdfsS100.size() == 0) {
-				alert("No S100 PDFs found.");
+				//alert("No S100 PDFs found.");
+				answer = confirmon("No S100 PDFs found. Proceed with further unzipping?");
+				if (answer == 0) {
+					// if the answer is 'yes':
+					pathString = pathString + "\\_S100";
+					// pathString until now ended with \S100, 
+					// now it is appended with \_S100
+					argFileS100 =  new File(pathString);
+					qC.filesTreeArray.clear();
+					directoryContentsArray(argFileS100);
+					//
+					for (j = 0; j < qC.filesTreeArray.size(); j++) {
+						thh = qC.filesTreeArray.get(j);
+						// thh.name is java.io.File, not String
+						thhs = thh.get("name").toString();
+						mtchS100zzip = ptnS100zzip.matcher(thhs);
+						if (mtchS100zzip.find()) {
+							tempDir = mtchS100zzip.group(1) + "\\_S100";
+							extractArchiveSevenZ(thhs, tempDir);
+						}
+					}
+					// List of PDF files in the subfolder ...\_S100
+					argTempDir =  new File(tempDir);
+					qC.filesTreeArray.clear();
+					directoryContentsArray(argTempDir);
+					//
+					//// List of orig. PDF files:
+					////pdfsS100 = new ArrayList(); 
+					for (j = 0; j < qC.filesTreeArray.size(); j++) {
+						thh = qC.filesTreeArray.get(j);
+						// thh.name is java.io.File, not String
+						thhs = thh.get("name").toString();
+						// https://howtodoinjava.com/java/string/get-last-4-characters/
+						if (thhs.substring(thhs.length() - 4).equals(".pdf")) {
+							if (validSourceFilename(thhs)) {
+								pdfsS100.add(thhs);
+							}
+						}
+					}
+				}
+				if (pdfsS100.size() == 0) {
+					alert("No valid S100 PDFs found.");
+				}
 			}
-			viewPDFFilesAdobeReader(pdfsS100);
 		}
 	};
 	//}}}
@@ -1763,8 +1898,9 @@ objectPaneAbout() {
 	//scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED); // default
 	//scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);  // default
 	// ...
-	aboutString = "=STARTER = BSH = 2020-06-22="; 
+	aboutString = "=STARTER = BSH = 2020-08-18="; 
 	aboutString = aboutString + "\nLatest changes:"; 
+	aboutString = aboutString + "\n2020.08.18: validSourceFilename(...)";
 	aboutString = aboutString + "\n2019.11.25: Pane 'QC Tools', minor change.";
 	aboutString = aboutString + "\n2019.11.07-11: Pane 'QC Files' added.";
 	aboutString = aboutString + "\n2019.11.05: Excel file is in work.";
@@ -1802,7 +1938,7 @@ objectPanelMain()
 }
 
 objectStarterFrame() {
-	starterFrame = new JFrame("=STARTER = BSH = 2020-06-22=");
+	starterFrame = new JFrame("=STARTER = BSH = 2020-08-18=");
 	starterFrame.setSize(400,300);  // say, but we will see later
 	// Position the frame:
 	ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
