@@ -927,7 +927,7 @@ objectPaneQcFilesHelper()
 	buttonExtractBz2.addActionListener(buttonExtractBz2Handler);
 	buttonCopyItems.addActionListener(buttonCopyItemsHandler);
 	// Tooltips
-	buttonSourceFolder.setToolTipText("Storage for complete QC sample.");
+	buttonSourceFolder.setToolTipText("Storage for complete QC sample. For copying only.");
 	buttonMasterFolder.setToolTipText("Local storage for partial QC sample.");
 	buttonChooseExcel.setToolTipText("Partial QC sample spreadsheet.");
 	buttonExtractBz2.setToolTipText("Extracts *.bz2 archives in \"Master folder\" and subfolders.");
@@ -1739,6 +1739,7 @@ objectPaneQcToolHelper()
 			// e.g., D:\vtex\_sqc_2020\05 MN May\0\YJFAN108629
 			/////
 			pathString = pathString + "\\S100";
+			pathStringS100 = pathString;
 			// e.g., D:\vtex\_sqc_2020\05 MN May\0\YJFAN108629\S100
 			argFileS100 =  new File(pathString);
 			qC.filesTreeArray.clear();
@@ -1824,7 +1825,11 @@ objectPaneQcToolHelper()
 				}
 			}
 			if (pdfsS100.size() == 0) {
-				alert("No valid S100 PDFs found.");
+				alert("No valid S100 PDFs found. Open folder in Explorer.");
+				// https://stackoverflow.com/questions/52423031/why-does-opening-an-explorer-window-and-selecting-a-file-through-pythons-subpro
+				// https://superuser.com/questions/1123614/what-does-exit-status-1-0x1-mean-for-a-windows-gui-program
+				// Hence, we take 'false' @exitMsg
+				runExternalApp("explorer.exe " + pathStringS100, false);
 			} else {
 				viewPDFFilesAdobeReader(pdfsS100, true);
 			}
@@ -1888,8 +1893,9 @@ objectPaneAbout() {
 	//scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED); // default
 	//scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);  // default
 	// ...
-	aboutString = "=STARTER = BSH = 2020-09-13="; 
+	aboutString = "=STARTER = BSH = 2021-03-03="; 
 	aboutString = aboutString + "\nLatest changes:"; 
+	aboutString = aboutString + "\n2021.03.03: Open orig. folder in Explorer";
 	aboutString = aboutString + "\n2020.09.13: viewPDFFilesAdobeReader(...)";
 	aboutString = aboutString + "\n2020.08.18: validSourceFilename(...)";
 	aboutString = aboutString + "\n2019.11.25: Pane 'QC Tools', minor change.";
@@ -1906,6 +1912,10 @@ objectPaneAbout() {
 // === Conveniency object for the main panel of the GUI:
 objectPanelMain()
 {
+	// https://www.debugcn.com/en/article/4198514.html
+	//UIManager.getDefaults().put("TabbedPane.contentBorderInsets", new Insets(1,1,1,1));
+	//UIManager.getDefaults().put("TabbedPane.tabsOverlapBorder", true);
+	//
 	panelForTabbedPane = new JPanel();
 	// for plugin, the overall panel must be just JPanel
 	tabPaneMain = new JTabbedPane();
@@ -1929,7 +1939,7 @@ objectPanelMain()
 }
 
 objectStarterFrame() {
-	starterFrame = new JFrame("=STARTER = BSH = 2020-08-19=");
+	starterFrame = new JFrame("=STARTER = BSH = 2021-03-03=");
 	starterFrame.setSize(400,300);  // say, but we will see later
 	// Position the frame:
 	ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
