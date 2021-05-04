@@ -1976,10 +1976,6 @@ objectPaneAbout() {
 // === Conveniency object for the main panel of the GUI:
 objectPanelMain()
 {
-	// https://www.debugcn.com/en/article/4198514.html
-	//UIManager.getDefaults().put("TabbedPane.contentBorderInsets", new Insets(1,1,1,1));
-	//UIManager.getDefaults().put("TabbedPane.tabsOverlapBorder", true);
-	//
 	panelForTabbedPane = new JPanel();
 	// for plugin, the overall panel must be just JPanel
 	tabPaneMain = new JTabbedPane();
@@ -2041,6 +2037,6 @@ objectStarterFrame() {
 	starterFrame.setVisible(true);
 }
 	
-objectStarterFrame();
+//objectStarterFrame();
 
 /* :folding=explicit:collapseFolds=1:tabSize=4:indentSize=4:noTabs=false: */
