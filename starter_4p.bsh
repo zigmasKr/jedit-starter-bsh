@@ -9,7 +9,7 @@ Everyone is permitted to copy and distribute verbatim copies
 of this license document, but changing it is not allowed.
 ... ... ...
 ==============================================
-Copyright (C) 2017-2020  Zigmantas Kryzius
+Copyright (C) 2017-2021  Zigmantas Kryzius
 e-mail: zigmas@vtex.lt, zigmas.kr@gmail.com
 ==============================================
 */
@@ -370,6 +370,8 @@ qC.textFieldItemPosition = new JTextField(25);
 qC.masterFolderItemsList = new File[] {};
 qC.filesTreeArray = new ArrayList();
 qC.markButtonCloseFiles = false;
+//
+qC.currentPageValue;
 
 // DEBUG:
 
@@ -668,12 +670,12 @@ objectPaneQcFilesHelper()
 	// with the desirable or "default" layout.
 	paneQcFilesHelper = new JPanel();
 	// components:
-	labelSourceFolder = new JLabel("Source Folder ");
+	labelSourceFolder = new JLabel("Complete Sample ");
 	textFieldSourceFolder = new JTextField(25);
-	buttonSourceFolder = new JButton("Choose Source"); 
+	buttonSourceFolder = new JButton("Choose Folder"); 
 	
-	labelMasterFolder = new JLabel("Master Folder ");
-	buttonMasterFolder = new JButton("Choose Master"); 
+	labelMasterFolder = new JLabel("Target Folder ");
+	buttonMasterFolder = new JButton("Choose Target"); 
 	labelMasterFolder.setOpaque(true);
 	labelMasterFolder.setBackground(qC.excelGreen);
 	buttonMasterFolder.setBackground(qC.excelGreen);
@@ -681,7 +683,7 @@ objectPaneQcFilesHelper()
 	buttonCopyItems = new JButton("Copy Item Files");
 	textFieldCopyItems = new JTextField(10);
 	
-	buttonExtractBz2 = new JButton("Extract bz2 (in Master Folder)");
+	buttonExtractBz2 = new JButton("Extract bz2 (in Target Folder)");
 	textFieldBz2Done = new JTextField(10);
 	
 	extractBz2Color = new Color(0x00f1ea);  // 0x00f1ea
@@ -717,49 +719,49 @@ objectPaneQcFilesHelper()
 	gbc.weightx = 0.0; //0.5
 	gbc.gridx = 0;
 	gbc.gridy = 0;
-	paneQcFilesHelper.add(labelSourceFolder, gbc);
+	paneQcFilesHelper.add(labelExcel, gbc);
 	// (0, 1) position
 	gbc.weightx = 0.0; //0.5
 	gbc.gridx = 1;
 	gbc.gridy = 0;
-	paneQcFilesHelper.add(textFieldSourceFolder, gbc);
+	paneQcFilesHelper.add(qC.textFieldExcelFile, gbc);
 	// (0, 2) position
 	gbc.weightx = 0.0; //0.5
 	gbc.gridx = 2;
 	gbc.gridy = 0;
-	paneQcFilesHelper.add(buttonSourceFolder, gbc);
+	paneQcFilesHelper.add(buttonChooseExcel, gbc);
 	// ===
 	// (1, 0) position
 	gbc.weightx = 0.0; //0.5
 	gbc.gridx = 0;
 	gbc.gridy = 1;
-	paneQcFilesHelper.add(labelExcel, gbc);
+	paneQcFilesHelper.add(labelMasterFolder, gbc);
 	// (1, 1) position
 	gbc.weightx = 0.0; //0.5
 	gbc.gridx = 1;
 	gbc.gridy = 1;
-	paneQcFilesHelper.add(qC.textFieldExcelFile, gbc);
+	paneQcFilesHelper.add(qC.textFieldMasterFolder, gbc);
 	// (1, 2) position
 	gbc.weightx = 0.0; //0.5
 	gbc.gridx = 2;
 	gbc.gridy = 1;
-	paneQcFilesHelper.add(buttonChooseExcel, gbc);
+	paneQcFilesHelper.add(buttonMasterFolder, gbc);
 	// ===
 	// (2, 0) position
 	gbc.weightx = 0.0; //0.5
 	gbc.gridx = 0;
 	gbc.gridy = 2;
-	paneQcFilesHelper.add(labelMasterFolder, gbc);
+	paneQcFilesHelper.add(labelSourceFolder, gbc);
 	// (2, 1) position
 	gbc.weightx = 0.0; //0.5
 	gbc.gridx = 1;
 	gbc.gridy = 2;
-	paneQcFilesHelper.add(qC.textFieldMasterFolder, gbc);
+	paneQcFilesHelper.add(textFieldSourceFolder, gbc);
 	// (2, 2) position
 	gbc.weightx = 0.0; //0.5
 	gbc.gridx = 2;
 	gbc.gridy = 2;
-	paneQcFilesHelper.add(buttonMasterFolder, gbc);
+	paneQcFilesHelper.add(buttonSourceFolder, gbc);
 	// ===
 	// (3, 0) position
 	gbc.weightx = 0.0; //0.5
@@ -823,7 +825,7 @@ objectPaneQcFilesHelper()
 	buttonMasterFolderHandler = new ActionListener() {
 		actionPerformed(evnt) {
 			startLocation = "D:"; 
-			dialogTitle = "Choose Master Folder";
+			dialogTitle = "Choose Target Folder";
 			pathMf = dialogChooseFolder(startLocation, dialogTitle);
 			if (pathMf != "") {
 				qC.textFieldMasterFolder.setText(pathMf);
@@ -840,7 +842,7 @@ objectPaneQcFilesHelper()
 	buttonChooseExcelHandler = new ActionListener() {
 		actionPerformed(evnt) {
 			if (!qC.isMasterFolderChosen) {
-				alert("Master Folder (QC Files) is not chosen.");
+				alert("Target Folder (QC Files) is not chosen.");
 				return;
 			}
 			startLocationExcel = "D:"; //\\_vtex-els--sqc";
@@ -875,7 +877,7 @@ objectPaneQcFilesHelper()
 				return;
 			}
 			if (!qC.isMasterFolderChosen) {
-				alert("Master Folder (QC Files) is not chosen.");
+				alert("Target Folder (QC Files) is not chosen.");
 				return;
 			}
 			if (!qC.isExcelChosen) {
@@ -942,7 +944,7 @@ objectPaneQcFilesHelper()
 				textFieldBz2Done.setText("Done: " + size + "/" + counter);
 			}
 			else {
-				alert("No .bz2 files found in \"master folder\".");
+				alert("No .bz2 files found in \"Target folder\".");
 			}
 		}
 	};
@@ -951,7 +953,7 @@ objectPaneQcFilesHelper()
 	//{{{ //~~~ buttonSavePropsHandler
 	buttonSavePropsHandler = new ActionListener() {
 		actionPerformed(evnt) {
-			jEdit.setProperty("macro.starter.QCFiles.MasterFolder", qC.textFieldMasterFolder.getText());
+			jEdit.setProperty("macro.starter.QCFiles.TargetFolder", qC.textFieldMasterFolder.getText());
 			jEdit.setProperty("macro.starter.QCFiles.ExcelFile", qC.textFieldExcelFile.getText());
 		}
 	};
@@ -960,7 +962,7 @@ objectPaneQcFilesHelper()
 	//{{{ //~~~ buttonLoadPropsHandler
 	buttonLoadPropsHandler = new ActionListener() {
 		actionPerformed(evnt) {
-			qC.textFieldMasterFolder.setText(jEdit.getProperty("macro.starter.QCFiles.MasterFolder", ""));
+			qC.textFieldMasterFolder.setText(jEdit.getProperty("macro.starter.QCFiles.TargetFolder", ""));
 			nameMasterFolder = qC.textFieldMasterFolder.getText();
 			qC.masterFolderItemsList = (new File(nameMasterFolder)).listFiles();
 			qC.textFieldItemPosition.setText("");
@@ -975,7 +977,7 @@ objectPaneQcFilesHelper()
 	//{{{ //~~~ buttonDeletePropsHandler
 	buttonDeletePropsHandler = new ActionListener() {
 		actionPerformed(evnt) {
-			jEdit.unsetProperty("macro.starter.QCFiles.MasterFolder");
+			jEdit.unsetProperty("macro.starter.QCFiles.TargetFolder");
 			jEdit.unsetProperty("macro.starter.QCFiles.ExcelFile");	
 		}
 	};
@@ -990,11 +992,11 @@ objectPaneQcFilesHelper()
 	buttonLoadProps.addActionListener(buttonLoadPropsHandler);
 	buttonDeleteProps.addActionListener(buttonDeletePropsHandler);
 	// Tooltips
-	buttonSourceFolder.setToolTipText("Storage for complete QC sample. For copying only.");
-	buttonMasterFolder.setToolTipText("Local storage for partial QC sample.");
-	buttonChooseExcel.setToolTipText("Partial QC sample spreadsheet.");
-	buttonExtractBz2.setToolTipText("Extracts *.bz2 archives in \"Master folder\" and subfolders.");
-	buttonCopyItems.setToolTipText("Based on Excel file, copies item files from \"Source folder\" to \"Master folder\".");
+	buttonSourceFolder.setToolTipText("Folder of complete QC sample. For copying only.");
+	buttonMasterFolder.setToolTipText("Folder of partial (resp. complete) QC sample.");
+	buttonChooseExcel.setToolTipText("Spreadsheet of partial QC sample.");
+	buttonExtractBz2.setToolTipText("Extracts *.bz2 archives in \"Target Folder\" and subfolders.");
+	buttonCopyItems.setToolTipText("Based on Excel spreadsheet, copies item files from \"Complete Sample\" folder to \"Target Folder\".");
 	
 	return paneQcFilesHelper;
 }
@@ -1047,7 +1049,8 @@ objectPaneQcToolHelper()
 	//
 	buttonCloseFiles = new JButton("Close Files");
 	buttonCloseFiles.setEnabled(false);
-	buttonOrigFiles = new JButton("Open Orig. PDFs"); 
+	buttonOrigFiles = new JButton("Open Orig. PDFs");
+	buttonExploreS100 = new JButton("Explore S100");
 	//
 	labelItemPosition = new JLabel("Item Position ");
 	qC.textFieldItemPosition.setText("");
@@ -1062,6 +1065,11 @@ objectPaneQcToolHelper()
 	buttonChooseItem.setBackground(openFilesColor);
 	buttonCloseFiles.setBackground(closeFilesColor);
 	buttonNextItem.setBackground(openFilesColor);
+	
+	// Mini Frame launch:
+	buttonMiniFrame = new JButton("Mini Frame");
+	colorMini = new Color(0xffe810);
+	buttonMiniFrame.setBackground(colorMini);
 	
 	// for Excel:
 	labelPageType = new JLabel("Page type ");
@@ -1181,6 +1189,11 @@ objectPaneQcToolHelper()
 	gbc.gridx = 1;
 	gbc.gridy = 3;
 	paneQcToolHelper.add(textFieldNotes, gbc);
+	// (3, 2) position
+	gbc.weightx = 0.5; //0.5
+	gbc.gridx = 2;
+	gbc.gridy = 3;
+	paneQcToolHelper.add(buttonExploreS100, gbc);
 	// ===
 	// (4, 0) position
 	gbc.weightx = 0.0; //0.5
@@ -1192,6 +1205,11 @@ objectPaneQcToolHelper()
 	gbc.gridx = 1;
 	gbc.gridy = 4;
 	paneQcToolHelper.add(textFieldPageType, gbc);
+	// // (4, 2) position
+	// gbc.weightx = 0.0; //0.5
+	// gbc.gridx = 2;
+	// gbc.gridy = 4;
+	// paneQcToolHelper.add(buttonMiniFrame, gbc);
 	// ===
 	// (5, 0) position
 	gbc.weightx = 0.0; //0.5
@@ -1368,7 +1386,7 @@ objectPaneQcToolHelper()
 		// If an item is from SkyLaTeX:
 		// For check the following PDF files are opened:
 		// ...S100\\(.*?)_S100.1_aqf.pdf
-		// ...S[200|250]\\(.*?)\.dvidiff.pdf
+		// ...S[200|250]\\(.*?)\.dvidiff.pdf - NOT
 		// ...S[200|250]\\(.*?)\.dvidifftext.pdf
 		// In jEdit, the following files opened for diff:
 		// ...S[200|250]\\(.*?)\.tex.init
@@ -1385,7 +1403,8 @@ objectPaneQcToolHelper()
 		//remarksFound = false;
 		reSync = "(.*)\\\\(.*?)\\.synctex\\.gz$";
 		// D:\_vtex-els--sqc\__M-N-factors-2018\05 May\01\YJMAA22235\yjmaa22235.synctex.gz
-		reAqf = "(.*)\\\\(S100\\\\)(.*?)(\\_S100\\.1\\_aqf)?\\.pdf$"; // YJMAA_22241_S100.1_aqf.pdf
+		reNoAqf = "(.*)\\\\(S100\\\\)(.*?)(\\_S100\\.1)\\.pdf$"; 
+		reAqf = "(.*)\\\\(S100\\\\)(.*?)(\\_S100\\.1\\_aqf)\\.pdf$"; // YJMAA_22241_S100.1_aqf.pdf
 		// For some journals, "*.1_aqf.pdf" files are not included, e.g., BULSCI_2751.pdf.
 		// ..... _S1631073X18301523-20180515_120101_S100.zip
 		reSourceZip = "(.*)\\\\(S100\\\\)(.*?)\\_S100\\.zip$";
@@ -1407,6 +1426,7 @@ objectPaneQcToolHelper()
 		
 		// Multiple flags must be combined using the or operator (|).
 		ptnSync = Pattern.compile(reSync, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		ptnNoAqf = Pattern.compile(reNoAqf, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 		ptnAqf = Pattern.compile(reAqf, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 		ptnOrder = Pattern.compile(reOrder, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 		ptnSourceZip = Pattern.compile(reSourceZip, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
@@ -1423,6 +1443,7 @@ objectPaneQcToolHelper()
 		ptnS250 = Pattern.compile(reS250, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 		
 		mtchSync;
+		mtchNoAqf;
 		mtchAqf;
 		mtchOrder;
 		mtchSourceZip;
@@ -1518,8 +1539,10 @@ objectPaneQcToolHelper()
 					mtchDvidiff = ptnDvidiff.matcher(qhhs);
 					if (mtchDvidiff.find()) {
 						//println("dvidiff: " + qhhs);
-						pdfs.add(qhhs);
-					} else {
+						/// files *.dvidiff.pdf are not usable if *.dvidifftext.pdf are available:
+						// pdfs.add(qhhs);
+					} 
+					else {
 						mtchDvidifftext = ptnDvidifftext.matcher(qhhs);
 						if (mtchDvidifftext.find()) {
 							//println("dvidifftext: " + qhhs);
@@ -1560,6 +1583,26 @@ objectPaneQcToolHelper()
 														//txtxmls.add(qhhs);
 													}
 				} } } } } } } } }
+			}
+			// If there are files *_S100.1.pdf and *_S100.1_aqf.pdf 
+			// in the list @pdfs, the file *_S100.1.pdf 
+			// should be removed from the list.
+			//
+			isSuffixAqf = false;
+			for (k = 0; k < pdfs.size(); k++) {
+				mtchAqf = ptnAqf.matcher(pdfs.get(k));
+				if (mtchAqf.find()) {
+					isSuffixAqf = true;
+				}
+			}
+			if (isSuffixAqf) {
+				for (k = 0; k < pdfs.size(); k++) {
+					mtchNoAqf = ptnNoAqf.matcher(pdfs.get(k));
+					if (mtchNoAqf.find()) {
+						pdfs.remove(k);
+						k = k - 1;
+					}
+				}
 			}
 			// Now trying to open PDF files; earlier than files in jEdit:
 			viewPDFFilesAdobeReader(pdfs, false);
@@ -1654,12 +1697,193 @@ objectPaneQcToolHelper()
 	}
 	// }}}
 	
+	
+	//
+	// ~~~~~~~~ MINI FRAME ~~~~~~~~
+	textFieldPageTypeMini = new JTextField(15);
+	buttonNextItemMini = new JButton("NEXT");
+	textFieldPageNumberMini = new JTextField(10);
+	buttonWriteToExcelMini = new JButton("WRITE");
+	
+	writeToExcelAction() {
+		pageNumber;
+		if (qC.isExcelChosen) {
+			if (!textFieldPageNumber.getText().equals("")) {
+				pageNumber = textFieldPageNumber.getText();
+				textFieldPageNumberMini.setText(pageNumber);
+			}
+			else {
+				if (!textFieldPageNumberMini.getText().equals("")) {
+					pageNumber = textFieldPageNumberMini.getText();
+					textFieldPageNumber.setText(pageNumber);
+				}
+			}
+			if (!pageNumber.equals("")) {
+				qC.exclObj.acceptPageNumber(pageNumber);
+				if (!qC.isExcelFileWritten) {
+					qC.exclObj.writeToFile();
+					textFieldPageType.setText("");
+					textFieldPageNumber.setText("");
+					textFieldPageTypeMini.setText("");
+					textFieldPageNumberMini.setText("");
+					qC.isExcelFileWritten = true;
+					buttonWriteToExcel.setEnabled(false);
+					buttonWriteToExcelMini.setEnabled(false);
+				}
+			}
+			else {
+				alert("Page number is not given.");
+			}
+		}
+	}
+	
+	nextItemAction() {
+		if (qC.markButtonCloseFiles) {
+			closeAllFiles();
+		}
+		if (currentItemPosition + 1 >= qC.masterFolderItemsList.length) {
+			alert("This will be the last item in the target folder.");
+		}
+		//
+		pathD = qC.masterFolderItemsList[currentItemPosition].toString();
+		nameItemFolder = pathD;
+		textFieldPathToItem.setText(pathD);
+		currentItemPosition = currentItemPosition + 1;
+		qC.textFieldItemPosition.setText(currentItemPosition.toString());
+		openItemRelatedFiles(pathD);
+		//
+		if (qC.isExcelChosen) {
+			if (!qC.isExcelFileWritten) {
+				pageNumber = textFieldPageNumber.getText();
+				qC.exclObj.acceptPageNumber(pageNumber);
+				qC.exclObj.writeToFile();
+				textFieldPageType.setText("");
+				textFieldPageNumber.setText("");
+				textFieldPageTypeMini.setText("");
+				textFieldPageNumberMini.setText("");
+				qC.isExcelFileWritten = true;
+				buttonWriteToExcel.setEnabled(true);
+				buttonWriteToExcelMini.setEnabled(true);
+			}
+			//
+			qC.exclObj.getSpreadsheet();
+			qC.exclObj.getItemRow(labelItemId.getText());  // here we have item name
+			currentPageType = qC.exclObj.getPageType();
+			textFieldPageType.setText(currentPageType);
+			textFieldPageNumber.setText("");
+			textFieldPageTypeMini.setText(currentPageType);
+			textFieldPageNumberMini.setText("");
+			qC.isExcelFileWritten = false;
+			buttonWriteToExcel.setEnabled(true);
+			buttonWriteToExcelMini.setEnabled(true);
+		} else {
+			textFieldPageType.setText("Excel QC List (QC Files) is not chosen.");
+			textFieldPageTypeMini.setText("Excel QC List (QC Files) is not chosen.");
+		}
+	}
+	
+	pageTypeFrameMini() {
+		frameMini = new JFrame("=QC MINI FRAME=");
+		//
+		labelPageTypeMini = new JLabel("Page type ");
+		labelPageNumberMini = new JLabel("Page number ");
+		//
+		textFieldPageTypeMini.setText(textFieldPageType.getText());
+		textFieldPageNumberMini.setText(textFieldPageNumber.getText());
+		//
+		labelPageTypeMini.setOpaque(true);
+		labelPageNumberMini.setOpaque(true);
+		labelPageTypeMini.setBackground(colorMini);
+		labelPageNumberMini.setBackground(colorMini);
+		buttonNextItemMini.setBackground(colorMini);
+		buttonWriteToExcelMini.setBackground(colorMini);
+		//
+		paneMini = new JPanel();
+		
+		//{{{ ~~~ GridBagLayout  in MINI FRAME
+		gblm = new GridBagLayout();
+		gbcm = new GridBagConstraints();
+		gbcm.fill = GridBagConstraints.HORIZONTAL;
+		paneMini.setLayout(gblm);
+		// ===
+		// (0, 0) position
+		gbcm.weightx = 0.0; //0.5
+		gbcm.gridx = 0;
+		gbcm.gridy = 0;
+		paneMini.add(labelPageTypeMini, gbcm);
+		// (0, 1) position
+		gbcm.weightx = 0.0; //0.5
+		gbcm.gridx = 1;
+		gbcm.gridy = 0;
+		paneMini.add(textFieldPageTypeMini, gbcm);  //?
+		// (0, 2) position
+		gbcm.weightx = 0.0; //0.5
+		gbcm.gridx = 2;
+		gbcm.gridy = 0;
+		paneMini.add(buttonNextItemMini, gbcm);
+		// ===
+		// (1, 0) position
+		gbcm.weightx = 0.0; //0.5
+		gbcm.gridx = 0;
+		gbcm.gridy = 1;
+		paneMini.add(labelPageNumberMini, gbcm);
+		// (1, 1) position
+		gbcm.weightx = 0.0; //0.5
+		gbcm.gridx = 1;
+		gbcm.gridy = 1;
+		paneMini.add(textFieldPageNumberMini, gbcm);  //?
+		// (1, 2) position
+		gbcm.weightx = 0.0; //0.5
+		gbcm.gridx = 2;
+		gbcm.gridy = 1;
+		paneMini.add(buttonWriteToExcelMini, gbcm);
+		//}}}
+		
+		//{{{ //~~~ buttonNextItemMiniHandler
+		buttonNextItemMiniHandler = new ActionListener() {
+			// actions needed: (1) close all files; (2) open next item files
+			actionPerformed(evnt) {
+				nextItemAction();
+			}
+		};
+		//}}}
+		
+		//{{{ //~~~ buttonWriteToExcelMiniHandler
+		buttonWriteToExcelMiniHandler = new ActionListener() {
+			actionPerformed(evnt) {
+				writeToExcelAction();
+			}
+		};
+		//}}}
+		
+		//
+		buttonNextItemMini.addActionListener(buttonNextItemMiniHandler);
+		buttonWriteToExcelMini.addActionListener(buttonWriteToExcelMiniHandler);
+		//
+		frameMini.setSize(250, 300);
+		frameMini.getContentPane().add(paneMini);
+		frameMini.pack();
+		frameMini.setVisible(true);
+		frameMini.setAlwaysOnTop(true);
+		//starterFrame.getLocation().y
+		//starterFrame.getLocation().x
+		//rectangle = starterFrame.getBounds();
+		//height = rectangle.height;
+		/* starterFrame.setLocation(x, y); */
+		//
+		// simply:
+		frameMini.setLocation(200, 200);
+		//return miniFrame;
+	}
+	// ~~~~~~~~ MINI END ~~~~~~~~
+	
+	
 // Listeners:
 	//{{{ //~~~ buttonChooseItemHandler
 	buttonChooseItemHandler = new ActionListener() {
 		actionPerformed(evnt) {
 			if (!qC.isMasterFolderChosen) {
-				alert("Master Folder (QC Files) is not chosen.");
+				alert("Target Folder (QC Files) is not chosen.");
 				return;
 			}
 			pathD;
@@ -1687,7 +1911,7 @@ objectPaneQcToolHelper()
 					}
 				}
 				if (currentItemPosition >= qC.masterFolderItemsList.length) {
-					alert("This will be the last item in the master folder.");
+					alert("This will be the last item in the target folder.");
 				}
 				//
 				openItemRelatedFiles(pathD);
@@ -1700,14 +1924,16 @@ objectPaneQcToolHelper()
 				qC.exclObj.getItemRow(labelItemId.getText());  // here we have item name
 				currentPageType = qC.exclObj.getPageType();
 				textFieldPageType.setText(currentPageType);
-				////textFieldPageTypeMini.setText(currentPageType);
+				textFieldPageTypeMini.setText(currentPageType);
 				qC.isExcelFileWritten = false;
 				buttonWriteToExcel.setEnabled(true);
-				////buttonWriteToExcelMini.setEnabled(true);
+				buttonWriteToExcelMini.setEnabled(true);    
+				// a possible launch of Mini Frame:
+				pageTypeFrameMini();
 			} else {
 				textFieldPageType.setText("Excel QC List (QC Files) is not chosen.");
+				textFieldPageTypeMini.setText("Excel QC List (QC Files) is not chosen.");
 			}
-			////miniQCFrame();
 		}
 	};
 	//}}}
@@ -1716,59 +1942,9 @@ objectPaneQcToolHelper()
 	buttonNextItemHandler = new ActionListener() {
 		// actions needed: (1) close all files; (2) open next item files
 		actionPerformed(evnt) {
-			if (qC.markButtonCloseFiles) {
-				closeAllFiles();
-			}
-			if (currentItemPosition + 1 >= qC.masterFolderItemsList.length) {
-				alert("This will be the last item in the master folder.");
-			}
-			//
-			pathD = qC.masterFolderItemsList[currentItemPosition].toString();
-			nameItemFolder = pathD;
-			textFieldPathToItem.setText(pathD);
-			currentItemPosition = currentItemPosition + 1;
-			qC.textFieldItemPosition.setText(currentItemPosition.toString());
-			openItemRelatedFiles(pathD);
-			//
-			if (qC.isExcelChosen) {
-				if (!qC.isExcelFileWritten) {
-					pageNumber = textFieldPageNumber.getText();
-					qC.exclObj.acceptPageNumber(pageNumber);
-					qC.exclObj.writeToFile();
-					textFieldPageType.setText("");
-					textFieldPageNumber.setText("");
-					////textFieldPageTypeMini.setText("");
-					////textFieldPageNumberMini.setText("");
-					qC.isExcelFileWritten = true;
-					buttonWriteToExcel.setEnabled(true);
-					////buttonWriteToExcelMini.setEnabled(true);
-				}
-				//
-				qC.exclObj.getSpreadsheet();
-				qC.exclObj.getItemRow(labelItemId.getText());  // here we have item name
-				currentPageType = qC.exclObj.getPageType();
-				textFieldPageType.setText(currentPageType);
-				textFieldPageNumber.setText("");
-				////textFieldPageTypeMini.setText(currentPageType);
-				////textFieldPageNumberMini.setText("");
-				qC.isExcelFileWritten = false;
-				buttonWriteToExcel.setEnabled(true);
-				////buttonWriteToExcelMini.setEnabled(true);
-			} else {
-				textFieldPageType.setText("Excel QC List (QC Files) is not chosen.");
-			}
+			nextItemAction();
 		}
 	};
-	//}}}
-	
-	//{{{ //~~~ buttonNextItemMiniHandler
-	/**********
-	buttonNextItemMiniHandler = new ActionListener() {
-		actionPerformed(evnt) {
-			buttonNextItem.doClick();
-		}
-	};
-	*/
 	//}}}
 	
 	//{{{ //~~~ buttonCloseFilesHandler
@@ -1800,7 +1976,7 @@ objectPaneQcToolHelper()
 			//
 			pathString = textFieldPathToItem.getText();
 			// e.g., D:\vtex\_sqc_2020\05 MN May\0\YJFAN108629
-			/////
+			///
 			pathString = pathString + "\\S100";
 			pathStringS100 = pathString;
 			// e.g., D:\vtex\_sqc_2020\05 MN May\0\YJFAN108629\S100
@@ -1840,7 +2016,7 @@ objectPaneQcToolHelper()
 					}
 				}
 			}
-			////
+			///
 			// Now trying to open S100 PDF files.
 			// The folder:
 			// D:\vtex\_sqc_2020\05 MN May\0\YJFAN108629\S100\_S100
@@ -1873,7 +2049,7 @@ objectPaneQcToolHelper()
 					qC.filesTreeArray.clear();
 					directoryContentsArray(argTempDir);
 					//
-					//// List of orig. PDF files:
+					/// List of orig. PDF files:
 					for (j = 0; j < qC.filesTreeArray.size(); j++) {
 						thh = qC.filesTreeArray.get(j);
 						// thh.name is java.io.File, not String
@@ -1900,64 +2076,49 @@ objectPaneQcToolHelper()
 	};
 	//}}}
 	
-	//{{{ //~~~ buttonWriteToExcelHandler
-	buttonWriteToExcelHandler = new ActionListener() {
+	//{{{ //~~~ buttonExploreS100Handler
+	buttonExploreS100Handler = new ActionListener() {
 		actionPerformed(evnt) {
-			pageNumber;
-			if (qC.isExcelChosen) {
-				pageNumber = textFieldPageNumber.getText();
-				qC.exclObj.acceptPageNumber(pageNumber);
-				if (!qC.isExcelFileWritten) {
-					qC.exclObj.writeToFile();
-					textFieldPageType.setText("");
-					textFieldPageNumber.setText("");
-					qC.isExcelFileWritten = true;
-					buttonWriteToExcel.setEnabled(false);
-					////textFieldPageTypeMini.setText("");
-					////textFieldPageNumberMini.setText("");
-					////buttonWriteToExcelMini.setEnabled(false);
-				}
-			}
+			pathStringA = textFieldPathToItem.getText();
+			// e.g., D:\vtex\_sqc_2020\05 MN May\0\YJFAN108629
+			pathStringA = pathStringA + "\\S100";
+			runExternalApp("explorer.exe " + pathStringA, false);
 		}
 	};
 	//}}}
 	
-	//{{{ //~~~ buttonWriteToExcelMiniHandler
-	/*****
-	buttonWriteToExcelMiniHandler = new ActionListener() {
+	//{{{ //~~~ buttonMiniFrameHandler
+	buttonMiniFrameHandler = new ActionListener() {
 		actionPerformed(evnt) {
-			pageNumberMini;
-			pageNumberMini = textFieldPageNumberMini.getText();
-			textFieldPageNumber.setText(pageNumberMini);
-			buttonWriteToExcel.doClick();
+			pageTypeFrameMini();
 		}
-	};  
-	*/
-	//}}} //
-
+	};
+	//}}}
+	
+	//{{{ //~~~ buttonWriteToExcelHandler
+	buttonWriteToExcelHandler = new ActionListener() {
+			actionPerformed(evnt) {
+				writeToExcelAction();
+			}
+		};
+	//}}}
 	
 	buttonChooseItem.addActionListener(buttonChooseItemHandler);
 	buttonNextItem.addActionListener(buttonNextItemHandler);
 	buttonCloseFiles.addActionListener(buttonCloseFilesHandler);
 	buttonOrigFiles.addActionListener(buttonOrigFilesHandler);
-	////buttonNextItemMini.addActionListener(buttonNextItemMiniHandler);
+	buttonExploreS100.addActionListener(buttonExploreS100Handler);
+	buttonMiniFrame.addActionListener(buttonMiniFrameHandler); 
 	buttonWriteToExcel.addActionListener(buttonWriteToExcelHandler);
-	////buttonWriteToExcelMini.addActionListener(buttonWriteToExcelMiniHandler);
 	//
 	return paneQcToolHelper;
 }
 
-
 objectPaneAbout() {
-	aboutPane = new JPanel();
-	aboutTextArea = new JTextArea();
-	aboutTextArea.setWrapStyleWord(true);
-	scrollPane = new JScrollPane(aboutTextArea);
-	//scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED); // default
-	//scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);  // default
-	// ...
-	aboutString = "=STARTER = BSH = 2021-05-04="; 
+	aboutString = "=STARTER = BSH = 2021-08-15="; 
 	aboutString = aboutString + "\nMajor changes:"; 
+	aboutString = aboutString + "\n2021.08.15: Mini frame implemented.";
+	aboutString = aboutString + "\n2021.05.27: Some PDFs will not be opened. Scrolling in \"About\".";
 	aboutString = aboutString + "\n2021.04.27: Buttons 'props' added";
 	aboutString = aboutString + "\n2021.03.03: Open orig. folder in Explorer";
 	aboutString = aboutString + "\n2020.09.13: viewPDFFilesAdobeReader(...)";
@@ -1967,15 +2128,29 @@ objectPaneAbout() {
 	aboutString = aboutString + "\n2019.11.05: Excel file is in work.";
 	aboutString = aboutString + "\n2019.09.29-30: Button 'Next'.";
 	aboutString = aboutString + "\nEarly history: 2017.01.03-2018.09.10; 2018.11.23";
+	//
+	aboutTextArea = new JTextArea(9, 55); //!
+	//aboutTextArea.setWrapStyleWord(true);
 	aboutTextArea.append(aboutString);
-	aboutPane.add(scrollPane);
+	aboutTextArea.setCaretPosition(0);
+	//
+	scrollPane = new JScrollPane(aboutTextArea);
+	scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+	scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS); 
+	// ...
 	//return scrollPane;
-	return aboutPane;
+	aboutPanel = new JPanel(); // not neccessary
+	aboutPanel.add(scrollPane);
+	return aboutPanel;
 }
 
 // === Conveniency object for the main panel of the GUI:
 objectPanelMain()
 {
+	// https://www.debugcn.com/en/article/4198514.html
+	//UIManager.getDefaults().put("TabbedPane.contentBorderInsets", new Insets(1,1,1,1));
+	//UIManager.getDefaults().put("TabbedPane.tabsOverlapBorder", true);
+	//
 	panelForTabbedPane = new JPanel();
 	// for plugin, the overall panel must be just JPanel
 	tabPaneMain = new JTabbedPane();
@@ -1999,7 +2174,7 @@ objectPanelMain()
 }
 
 objectStarterFrame() {
-	starterFrame = new JFrame("=STARTER = BSH = 2021-05-04=");
+	starterFrame = new JFrame("=STARTER = BSH = 2021-08-15=");
 	starterFrame.setSize(400,300);  // say, but we will see later
 	// Position the frame:
 	ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -2036,7 +2211,7 @@ objectStarterFrame() {
 	starterFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 	starterFrame.setVisible(true);
 }
-	
+
 //objectStarterFrame();
 
 /* :folding=explicit:collapseFolds=1:tabSize=4:indentSize=4:noTabs=false: */
