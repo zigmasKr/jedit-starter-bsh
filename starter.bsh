@@ -9,7 +9,7 @@ Everyone is permitted to copy and distribute verbatim copies
 of this license document, but changing it is not allowed.
 ... ... ...
 ==============================================
-Copyright (C) 2017-2021  Zigmantas Kryzius
+Copyright (C) 2017-2022  Zigmantas Kryzius
 e-mail: zigmas@vtex.lt, zigmas.kr@gmail.com
 ==============================================
 */
@@ -385,7 +385,9 @@ scrHeight = scrDim.height;
 //
 //screen dimensions = "1366x768";   // HPP @home; Win10 Home 
 //screen dimensions = "1680x1050";  // PHILIPS monitor @work; Win10 Pro
-_sevenz = "C:\\PROGRA~1\\7-Zip\\7z.exe";
+_zipTool; 
+// = "C:\\PROGRA~1\\7-Zip\\7z.exe";
+_adobeReader;
 
 
 // ===== FUNCTIONS =====
@@ -551,25 +553,26 @@ runExternalApp(command, exitMsg) {
 //{{{ //~~~ extractArchiveSevenZ
 extractArchiveSevenZ(archivePath, tmpDir) {
 	// Function for code reuse.	
+	// Actual command line - for zip tool 7z.
 	// https://stackoverflow.com/questions/31460643/how-do-i-unzip-all-files-in-a-folder-using-7-zip-in-batch
 	// " x " -- eXtract files with full paths
 	// "-o " --  -o{Directory} : set Output directory
 	// " -aoa " -- Overwrite All existing files without prompt
-	clineSevenZ = _sevenz + " x " 
+	clineZipTool = "\"" + _zipTool + "\"" + " x " 
 		+ "\"" + archivePath + "\"" + " -aoa " + "-o" 
-		+ "\"" + tmpDir + "\""; 
+		+ "\"" + tmpDir + "\"";             
 	runnerSevenZ() {
 		run() {
 			// do work:
-			runExternalApp(super.clineSevenZ, true);
+			runExternalApp(super.clineZipTool, true);
 		}
 		return this;
 	}
-	runnerSevenZ = runnerSevenZ();
-	// Starts thread on runnerSevenZ.run()
-	threadSevenZ = new Thread(runnerSevenZ);
-	threadSevenZ.start();
-	threadSevenZ.join();
+	runnerZipTool = runnerZipTool();
+	// Starts thread on runnerZipTool.run()
+	threadZipTool = new Thread(runnerZipTool);
+	threadZipTool.start();
+	threadZipTool.join();
 }
 //}}}
 
@@ -643,6 +646,136 @@ copyDirectoryApache(source, destin) {
 }
 //}}}
 
+
+objectPaneSettings() 
+{
+	// Pane to set some global parameters: paths to ZIP, ADOBE reader, etc.
+	// To make "paneHelper" somehow stable in size, it is put onto another JPanel
+	// with the desirable or "default" layout.
+	paneSettingsOuter = new JPanel();
+	paneSettingsHelper = objectPaneSettingsHelper();
+	paneSettingsOuter.add(paneSettingsHelper);
+	return paneSettingsOuter;
+}
+
+
+objectPaneSettingsHelper()
+{
+	// To make "paneSettings" somehow stable in size, it is put onto another JPanel
+	// with the desirable or "default" layout.
+	paneSettingsHelper = new JPanel();
+	// components:
+	buttonSetAdobeReader = new JButton("Adobe Reader"); 
+	buttonSetZipTool = new JButton("Zip Tool (7z)");
+	buttonSetPerl = new JButton("Perl");
+	//
+	textFieldAdobeReader = new JTextField(35);
+	textFieldZipTool = new JTextField(35);
+	
+	//{{{ ~~~ GridBagLayout  in objectPaneQcFiles()
+	gbl = new GridBagLayout();
+	gbc = new GridBagConstraints();
+	paneSettingsHelper.setLayout(gbl);
+	// ===
+	gbc.anchor = GridBagConstraints.WEST;
+	gbc.fill = GridBagConstraints.HORIZONTAL;
+	// (0, 0) position
+	gbc.weighty = 1.0;
+    gbc.weightx = 1.0;
+    gbc.gridx = 0;
+    gbc.gridy = 0;
+    //gbc.insets = new Insets(0, 0, 0, 399);
+	paneSettingsHelper.add(buttonSetAdobeReader, gbc);
+	//(0, 1) position
+	gbc.weighty = 1.0;
+    gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.gridy = 0;
+	paneSettingsHelper.add(textFieldAdobeReader, gbc);
+	// (1, 0) position
+	gbc.weightx = 1.0; //0.5
+	gbc.weighty = 1.0; //0.5
+	gbc.gridx = 0;
+	gbc.gridy = 1;
+	paneSettingsHelper.add(buttonSetZipTool, gbc);
+	// (1, 1) position
+	gbc.weightx = 1.0; //0.5
+	gbc.weighty = 1.0; //0.5
+	gbc.gridx = 1;
+	gbc.gridy = 1;
+	paneSettingsHelper.add(textFieldZipTool, gbc);
+	// (2, 0) position
+	gbc.weightx = 1.0; //0.5
+	gbc.weighty = 1.0; //0.5
+	gbc.gridx = 0;
+	gbc.gridy = 2;
+	paneSettingsHelper.add(buttonSetPerl, gbc);
+	//
+	
+	//{{{ //~~~ buttonSetAdobeReaderHandler
+	buttonSetAdobeReaderHandler = new ActionListener() {
+		actionPerformed(evnt) {
+			startLocationAR = "C:"; 
+			dialogTitleAR = "Set Adobe Reader";
+			JFileChooser chooserAR = new JFileChooser(startLocationAR);
+			//
+			String[] extensionsx = new String[]{"exe"};
+			FileNameExtensionFilter filterAR = new javax.swing.filechooser.FileNameExtensionFilter("Executive files", extensionsx);  // type: FileFilter
+			chooserAR.setDialogTitle(dialogTitleAR);
+			chooserAR.setFileSelectionMode(JFileChooser.FILES_ONLY);
+			chooserAR.setFileFilter(filterAR);
+			chooserAR.setPreferredSize(new Dimension(380, 560));
+			returnValueAR = chooserAR.showOpenDialog(null);
+			//
+			if (returnValueAR == JFileChooser.APPROVE_OPTION) {
+				_adobeReader = chooserAR.getSelectedFile().getAbsolutePath();
+				jEdit.setProperty("macro.starter.settings.AdobeReader", _adobeReader);
+				textFieldAdobeReader.setText(_adobeReader);
+			}
+		}
+	};
+	//}}}
+	
+	//{{{ //~~~ buttonSetZipToolHandler
+	buttonSetZipToolHandler = new ActionListener() {
+		actionPerformed(evnt) {
+			startLocationZipTool = "C:"; 
+			dialogTitleZipTool = "Set Zip Tool";
+			JFileChooser chooserZipTool = new JFileChooser(startLocationZipTool);
+			//
+			String[] extensionsx = new String[]{"exe"};
+			FileNameExtensionFilter filterZipTool = new javax.swing.filechooser.FileNameExtensionFilter("Executive files", extensionsx);  // type: FileFilter
+			chooserZipTool.setDialogTitle(dialogTitleZipTool);
+			chooserZipTool.setFileSelectionMode(JFileChooser.FILES_ONLY);
+			chooserZipTool.setFileFilter(filterZipTool);
+			chooserZipTool.setPreferredSize(new Dimension(380, 560));
+			returnValueZipTool = chooserZipTool.showOpenDialog(null);
+			//
+			if (returnValueZipTool == JFileChooser.APPROVE_OPTION) {
+				_zipTool = chooserZipTool.getSelectedFile().getAbsolutePath();
+				jEdit.setProperty("macro.starter.settings.ZipTool", _zipTool);
+				textFieldZipTool.setText(_zipTool);
+			}
+		}
+	};
+	//}}}
+	
+	buttonSetAdobeReader.addActionListener(buttonSetAdobeReaderHandler);
+	buttonSetZipTool.addActionListener(buttonSetZipToolHandler);
+	//
+	if (jEdit.getProperty("macro.starter.settings.AdobeReader", "").equals("")) {
+		alert("Adobe Reader is not set");
+	}
+	if (jEdit.getProperty("macro.starter.settings.ZipTool", "").equals("")) {
+		alert("Zip Tool (7z) is not set");
+	}
+	textFieldAdobeReader.setText(jEdit.getProperty("macro.starter.settings.AdobeReader", ""));
+	textFieldZipTool.setText(jEdit.getProperty("macro.starter.settings.ZipTool", ""));
+		
+	
+	
+	return paneSettingsHelper;
+}
 
 objectPaneQcTool() 
 {
@@ -1019,16 +1152,15 @@ objectPaneQcToolHelper()
 		// in case of DELL@Win10, screen width = 1280, height = 720
 	}
 	// default: machine = "desktop";
-	adobeReaderDC = "C:/Program Files (x86)/Adobe/Acrobat Reader DC/Reader/AcroRd32.exe";
-	adobeReader70 = "C:/Program Files/Adobe/Acrobat 7.0/Reader/AcroRd32.exe";
-	_adobeReader;
+	//adobeReaderDC = "C:/Program Files (x86)/Adobe/Acrobat Reader DC/Reader/AcroRd32.exe";
+	//adobeReader70 = "C:/Program Files/Adobe/Acrobat 7.0/Reader/AcroRd32.exe";
 	_taskkill;
 	if (machine.equals("desktop1680")) {
-		_adobeReader = adobeReader70;
+		//_adobeReader = adobeReader70;
 		_taskkill = "C:/Windows/System32/taskkill.exe";
 	} else {
 		//machine = "laptop";
-		_adobeReader = adobeReaderDC;
+		//_adobeReader = adobeReaderDC;
 		_taskkill = "C:/Windows/SysWOW64/taskkill.exe";
 	}
 	//jEdit = Java.type('org.gjt.sp.jedit.jEdit');
@@ -1332,7 +1464,8 @@ objectPaneQcToolHelper()
 		numberPDFs = pdfFileList.size();
 		answer = 0;
 		//
-		clineAdobeRead = _adobeReader + " /n" + " /o";
+		_adobeReader = jEdit.getProperty("macro.starter.settings.AdobeReader", "");
+		clineAdobeRead = "\"" + _adobeReader + "\"" + " /n" + " /o";
 		for (kk = 0; kk < numberPDFs; kk++) {
 			if (checkOption) {
 				answer = confirmon(pdfFileList.get(kk) + " --- Open this?");
@@ -1340,6 +1473,9 @@ objectPaneQcToolHelper()
 				answer = 0;
 			}
 			if (answer == 0) {
+				// 2022-03-16
+				// For whatever reason quoting below does not work when 
+				// there are two or more consequetive spaces in the file name.
 				clineAdobeRead = clineAdobeRead + " \"" + pdfFileList.get(kk) + "\"";
 			}
 		}
@@ -2161,9 +2297,10 @@ objectPaneQcToolHelper()
 }
 
 objectPaneAbout() {
-	aboutString = "=STARTER = BSH = 2021-11-26="; 
+	aboutString = "=STARTER = BSH = 2022-03-16="; 
 	aboutString = aboutString + "\nMajor changes:"; 
-	aboutString = aboutString + "\n2021.11.26: Mini Frame made better.";
+	aboutString = aboutString + "\n2022.03.16: Settings panel introduced.";
+	aboutString = aboutString + "\n2021.11.26: Mini Frame is made better.";
 	aboutString = aboutString + "\n2021.11.02: PDFs of figures will not open.";
 	aboutString = aboutString + "\n2021.09.16: Mini frame revised.";
 	aboutString = aboutString + "\n2021.08.15: Mini frame implemented.";
@@ -2214,6 +2351,9 @@ objectPanelMain()
 	pnArticleData = objectPaneArticleData();
 	tabPaneMain.addTab("Article Data", pnArticleData);
 	//
+	pnSettings = objectPaneSettings();
+	tabPaneMain.addTab("Settings", pnSettings);
+	//
 	pnAbout = objectPaneAbout();
 	tabPaneMain.addTab("About", pnAbout);
 
@@ -2223,7 +2363,7 @@ objectPanelMain()
 }
 
 objectStarterFrame() {
-	starterFrame = new JFrame("=STARTER = BSH = 2021-11-26=");
+	starterFrame = new JFrame("=STARTER = BSH = 2022-03-16=");
 	starterFrame.setSize(400,300);  // say, but we will see later
 	// Position the frame:
 	ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
