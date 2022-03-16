@@ -353,8 +353,8 @@ objectPaneArticleData() {
 // }}}
 
 // === QC TOOL ===
-
-qC = object();
+                                       
+// qC is just a variables' name prefix for a better readability
 qC.excelGreen = new Color(0x99cc00);
 qC.propsColor = new Color(0x90ea90);
 qC.propsDeleteColor = new Color(0xff66ff);
@@ -1065,11 +1065,10 @@ objectPaneQcToolHelper()
 	buttonChooseItem.setBackground(openFilesColor);
 	buttonCloseFiles.setBackground(closeFilesColor);
 	buttonNextItem.setBackground(openFilesColor);
+	buttonNextItem.setEnabled(false);
 	
-	// Mini Frame launch:
-	buttonMiniFrame = new JButton("Mini Frame");
-	colorMini = new Color(0xffe810);
-	buttonMiniFrame.setBackground(colorMini);
+	// mini frame
+	buttonMiniFrame = new JButton("MINI FRAME");
 	
 	// for Excel:
 	labelPageType = new JLabel("Page type ");
@@ -1088,7 +1087,7 @@ objectPaneQcToolHelper()
 	//
 	currentItemPosition = 0;  // position of the current item in this list
 	ip;
-	currentPageType;
+	currentPageType = "";
 	currentPageNumber;
 	nameItemFolder;
 	//
@@ -1205,11 +1204,11 @@ objectPaneQcToolHelper()
 	gbc.gridx = 1;
 	gbc.gridy = 4;
 	paneQcToolHelper.add(textFieldPageType, gbc);
-	// // (4, 2) position
-	// gbc.weightx = 0.0; //0.5
-	// gbc.gridx = 2;
-	// gbc.gridy = 4;
-	// paneQcToolHelper.add(buttonMiniFrame, gbc);
+	// (4, 2) position
+	gbc.weightx = 0.0; //0.5
+	gbc.gridx = 2;
+	gbc.gridy = 4;
+	paneQcToolHelper.add(buttonMiniFrame, gbc);
 	// ===
 	// (5, 0) position
 	gbc.weightx = 0.0; //0.5
@@ -1227,7 +1226,96 @@ objectPaneQcToolHelper()
 	gbc.gridy = 5;
 	paneQcToolHelper.add(buttonWriteToExcel, gbc);
 	//}}}
-
+	
+	//
+	// {{{~~~~~~~~ MINI FRAME ~~~~~~~~
+	miniFrame = new JFrame();
+	miniFrameStarted = false;
+	// mini frame components related to other components:
+	textFieldPageTypeMini = new JTextField(15);
+	buttonNextItemMini = new JButton("NEXT");
+	textFieldPageNumberMini = new JTextField(10);
+	buttonWriteToExcelMini = new JButton("WRITE");
+	//
+	// {{{ pageTypeFrameMini()
+	pageTypeFrameMini() {
+		frameMini = new JFrame("=QC MINI FRAME=");
+		// 2021.11.26:
+		frameMini.setTitle("Item: " + labelItemId.getText() + 
+			"  **  #" + currentItemPosition.toString());
+		//
+		labelPageTypeMini = new JLabel("Page type ");
+		labelPageNumberMini = new JLabel("Page number ");
+		//
+		//textFieldPageTypeMini.setText(textFieldPageType.getText());
+		textFieldPageTypeMini.setText(currentPageType);
+		textFieldPageNumberMini.setText(textFieldPageNumber.getText());
+		//
+		colorMini = new Color(0xffe810);
+		labelPageTypeMini.setOpaque(true);
+		labelPageNumberMini.setOpaque(true);
+		labelPageTypeMini.setBackground(colorMini);
+		labelPageNumberMini.setBackground(colorMini);
+		buttonNextItemMini.setBackground(colorMini);
+		buttonWriteToExcelMini.setBackground(colorMini);
+		buttonNextItemMini.setEnabled(false);
+		//
+		paneMini = new JPanel();
+		
+		//{{{ ~~~ GridBagLayout  in MINI FRAME
+		gblm = new GridBagLayout();
+		gbcm = new GridBagConstraints();
+		gbcm.fill = GridBagConstraints.HORIZONTAL;
+		paneMini.setLayout(gblm);
+		// ===
+		// (0, 0) position
+		gbcm.weightx = 0.0; //0.5
+		gbcm.gridx = 0;
+		gbcm.gridy = 0;
+		paneMini.add(labelPageTypeMini, gbcm);
+		// (0, 1) position
+		gbcm.weightx = 0.0; //0.5
+		gbcm.gridx = 1;
+		gbcm.gridy = 0;
+		paneMini.add(textFieldPageTypeMini, gbcm);  //?
+		// (0, 2) position
+		gbcm.weightx = 0.0; //0.5
+		gbcm.gridx = 2;
+		gbcm.gridy = 0;
+		paneMini.add(buttonNextItemMini, gbcm);
+		// ===
+		// (1, 0) position
+		gbcm.weightx = 0.0; //0.5
+		gbcm.gridx = 0;
+		gbcm.gridy = 1;
+		paneMini.add(labelPageNumberMini, gbcm);
+		// (1, 1) position
+		gbcm.weightx = 0.0; //0.5
+		gbcm.gridx = 1;
+		gbcm.gridy = 1;
+		paneMini.add(textFieldPageNumberMini, gbcm);  //?
+		// (1, 2) position
+		gbcm.weightx = 0.0; //0.5
+		gbcm.gridx = 2;
+		gbcm.gridy = 1;
+		paneMini.add(buttonWriteToExcelMini, gbcm);
+		//}}}
+		//
+		frameMini.setSize(250, 300);
+		frameMini.getContentPane().add(paneMini);
+		frameMini.pack();
+		frameMini.setVisible(true);
+		frameMini.setAlwaysOnTop(true);
+		// simply:
+		frameMini.setLocation(200, 200);
+		return frameMini;
+	}
+	//}}}
+	// ~~~~~~~~ END MINI FRAME ~~~~~~~~
+	// }}}
+	
+	// various functions
+	
 	//{{{ //~~~ viewPDFFilesAdobeReader
 	viewPDFFilesAdobeReader(pdfFileList, checkOption) {
 		// Function for code reuse;
@@ -1423,6 +1511,8 @@ objectPaneQcToolHelper()
 		reS2Resupply = "(.*)S2[0|5]0RESUPPLY(.*)$";
 		reS200 = "(.*)\\\\(S200\\\\)(.*)$";
 		reS250 = "(.*)\\\\(S250\\\\)(.*)$";
+		// About figures
+		reFigPdf = "(.*)\\\\(S2[0|5]0\\\\)(fig\\.?u?r?e?.*)\\.pdf$"; // Fig. 3 0914.pdf | Figure_regional...
 		
 		// Multiple flags must be combined using the or operator (|).
 		ptnSync = Pattern.compile(reSync, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
@@ -1441,6 +1531,8 @@ objectPaneQcToolHelper()
 		ptnS2Resupply = Pattern.compile(reS2Resupply, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 		ptnS200 = Pattern.compile(reS200, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 		ptnS250 = Pattern.compile(reS250, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		//
+		ptnFigPdf = Pattern.compile(reFigPdf, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 		
 		mtchSync;
 		mtchNoAqf;
@@ -1458,6 +1550,7 @@ objectPaneQcToolHelper()
 		mtchS2Resupply;
 		mtchS200;
 		mtchS250;
+		mtchFigPdf;
 	
 		// If not in SkyLaTeX:
 		rePdf = "(.*)\\\\(S2[0|5]0\\\\).*\\.pdf$"; // .*.pdf
@@ -1604,6 +1697,13 @@ objectPaneQcToolHelper()
 					}
 				}
 			}
+			for (k = 0; k < pdfs.size(); k++) {
+				mtchFigPdf = ptnFigPdf.matcher(pdfs.get(k));
+				if (mtchFigPdf.find()) {
+					pdfs.remove(k);
+					k = k - 1;
+				}
+			}
 			// Now trying to open PDF files; earlier than files in jEdit:
 			viewPDFFilesAdobeReader(pdfs, false);
 			closeSomeJEditViews();
@@ -1666,6 +1766,13 @@ objectPaneQcToolHelper()
 								}
 				} } } }
 			}
+			for (k = 0; k < pdfs.size(); k++) {
+				mtchFigPdf = ptnFigPdf.matcher(pdfs.get(k));
+				if (mtchFigPdf.find()) {
+					pdfs.remove(k);
+					k = k - 1;
+				}
+			}
 			// Now trying to open PDF files; earlier than files in jEdit:
 			viewPDFFilesAdobeReader(pdfs, false);
 			closeSomeJEditViews();
@@ -1697,16 +1804,8 @@ objectPaneQcToolHelper()
 	}
 	// }}}
 	
-	
-	//
-	// ~~~~~~~~ MINI FRAME ~~~~~~~~
-	textFieldPageTypeMini = new JTextField(15);
-	buttonNextItemMini = new JButton("NEXT");
-	textFieldPageNumberMini = new JTextField(10);
-	buttonWriteToExcelMini = new JButton("WRITE");
-	
-	writeToExcelAction() {
-		pageNumber;
+	actionWriteToExcel() {
+		pageNumber = "";
 		if (qC.isExcelChosen) {
 			if (!textFieldPageNumber.getText().equals("")) {
 				pageNumber = textFieldPageNumber.getText();
@@ -1722,12 +1821,13 @@ objectPaneQcToolHelper()
 				qC.exclObj.acceptPageNumber(pageNumber);
 				if (!qC.isExcelFileWritten) {
 					qC.exclObj.writeToFile();
+					qC.isExcelFileWritten = true;
 					textFieldPageType.setText("");
 					textFieldPageNumber.setText("");
 					textFieldPageTypeMini.setText("");
 					textFieldPageNumberMini.setText("");
-					qC.isExcelFileWritten = true;
-					buttonWriteToExcel.setEnabled(false);
+					buttonNextItem.setEnabled(true);
+					buttonNextItemMini.setEnabled(true);
 					buttonWriteToExcelMini.setEnabled(false);
 				}
 			}
@@ -1735,9 +1835,12 @@ objectPaneQcToolHelper()
 				alert("Page number is not given.");
 			}
 		}
+		else {
+			alert("Excel file is not chosen.");
+		}
 	}
 	
-	nextItemAction() {
+	actionNextItem() {
 		if (qC.markButtonCloseFiles) {
 			closeAllFiles();
 		}
@@ -1757,12 +1860,12 @@ objectPaneQcToolHelper()
 				pageNumber = textFieldPageNumber.getText();
 				qC.exclObj.acceptPageNumber(pageNumber);
 				qC.exclObj.writeToFile();
+				qC.isExcelFileWritten = true;
 				textFieldPageType.setText("");
 				textFieldPageNumber.setText("");
+				buttonWriteToExcel.setEnabled(true);
 				textFieldPageTypeMini.setText("");
 				textFieldPageNumberMini.setText("");
-				qC.isExcelFileWritten = true;
-				buttonWriteToExcel.setEnabled(true);
 				buttonWriteToExcelMini.setEnabled(true);
 			}
 			//
@@ -1771,114 +1874,26 @@ objectPaneQcToolHelper()
 			currentPageType = qC.exclObj.getPageType();
 			textFieldPageType.setText(currentPageType);
 			textFieldPageNumber.setText("");
-			textFieldPageTypeMini.setText(currentPageType);
-			textFieldPageNumberMini.setText("");
 			qC.isExcelFileWritten = false;
 			buttonWriteToExcel.setEnabled(true);
-			buttonWriteToExcelMini.setEnabled(true);
+			buttonNextItem.setEnabled(false);
+			if (miniFrameStarted) {
+				miniFrame.setTitle("Item: " + labelItemId.getText() + 
+					"  **  #" + currentItemPosition.toString());
+				textFieldPageTypeMini.setText(currentPageType);
+				textFieldPageNumberMini.setText("");
+				buttonWriteToExcelMini.setEnabled(true);
+				buttonNextItemMini.setEnabled(false);
+			}
 		} else {
 			textFieldPageType.setText("Excel QC List (QC Files) is not chosen.");
 			textFieldPageTypeMini.setText("Excel QC List (QC Files) is not chosen.");
 		}
 	}
 	
-	pageTypeFrameMini() {
-		frameMini = new JFrame("=QC MINI FRAME=");
-		//
-		labelPageTypeMini = new JLabel("Page type ");
-		labelPageNumberMini = new JLabel("Page number ");
-		//
-		textFieldPageTypeMini.setText(textFieldPageType.getText());
-		textFieldPageNumberMini.setText(textFieldPageNumber.getText());
-		//
-		labelPageTypeMini.setOpaque(true);
-		labelPageNumberMini.setOpaque(true);
-		labelPageTypeMini.setBackground(colorMini);
-		labelPageNumberMini.setBackground(colorMini);
-		buttonNextItemMini.setBackground(colorMini);
-		buttonWriteToExcelMini.setBackground(colorMini);
-		//
-		paneMini = new JPanel();
-		
-		//{{{ ~~~ GridBagLayout  in MINI FRAME
-		gblm = new GridBagLayout();
-		gbcm = new GridBagConstraints();
-		gbcm.fill = GridBagConstraints.HORIZONTAL;
-		paneMini.setLayout(gblm);
-		// ===
-		// (0, 0) position
-		gbcm.weightx = 0.0; //0.5
-		gbcm.gridx = 0;
-		gbcm.gridy = 0;
-		paneMini.add(labelPageTypeMini, gbcm);
-		// (0, 1) position
-		gbcm.weightx = 0.0; //0.5
-		gbcm.gridx = 1;
-		gbcm.gridy = 0;
-		paneMini.add(textFieldPageTypeMini, gbcm);  //?
-		// (0, 2) position
-		gbcm.weightx = 0.0; //0.5
-		gbcm.gridx = 2;
-		gbcm.gridy = 0;
-		paneMini.add(buttonNextItemMini, gbcm);
-		// ===
-		// (1, 0) position
-		gbcm.weightx = 0.0; //0.5
-		gbcm.gridx = 0;
-		gbcm.gridy = 1;
-		paneMini.add(labelPageNumberMini, gbcm);
-		// (1, 1) position
-		gbcm.weightx = 0.0; //0.5
-		gbcm.gridx = 1;
-		gbcm.gridy = 1;
-		paneMini.add(textFieldPageNumberMini, gbcm);  //?
-		// (1, 2) position
-		gbcm.weightx = 0.0; //0.5
-		gbcm.gridx = 2;
-		gbcm.gridy = 1;
-		paneMini.add(buttonWriteToExcelMini, gbcm);
-		//}}}
-		
-		//{{{ //~~~ buttonNextItemMiniHandler
-		buttonNextItemMiniHandler = new ActionListener() {
-			// actions needed: (1) close all files; (2) open next item files
-			actionPerformed(evnt) {
-				nextItemAction();
-			}
-		};
-		//}}}
-		
-		//{{{ //~~~ buttonWriteToExcelMiniHandler
-		buttonWriteToExcelMiniHandler = new ActionListener() {
-			actionPerformed(evnt) {
-				writeToExcelAction();
-			}
-		};
-		//}}}
-		
-		//
-		buttonNextItemMini.addActionListener(buttonNextItemMiniHandler);
-		buttonWriteToExcelMini.addActionListener(buttonWriteToExcelMiniHandler);
-		//
-		frameMini.setSize(250, 300);
-		frameMini.getContentPane().add(paneMini);
-		frameMini.pack();
-		frameMini.setVisible(true);
-		frameMini.setAlwaysOnTop(true);
-		//starterFrame.getLocation().y
-		//starterFrame.getLocation().x
-		//rectangle = starterFrame.getBounds();
-		//height = rectangle.height;
-		/* starterFrame.setLocation(x, y); */
-		//
-		// simply:
-		frameMini.setLocation(200, 200);
-		//return miniFrame;
-	}
-	// ~~~~~~~~ MINI END ~~~~~~~~
 	
 	
-// Listeners:
+	// Handlers for listeners:
 	//{{{ //~~~ buttonChooseItemHandler
 	buttonChooseItemHandler = new ActionListener() {
 		actionPerformed(evnt) {
@@ -1924,12 +1939,15 @@ objectPaneQcToolHelper()
 				qC.exclObj.getItemRow(labelItemId.getText());  // here we have item name
 				currentPageType = qC.exclObj.getPageType();
 				textFieldPageType.setText(currentPageType);
-				textFieldPageTypeMini.setText(currentPageType);
 				qC.isExcelFileWritten = false;
-				buttonWriteToExcel.setEnabled(true);
-				buttonWriteToExcelMini.setEnabled(true);    
-				// a possible launch of Mini Frame:
-				pageTypeFrameMini();
+				buttonWriteToExcel.setEnabled(true);        
+				//
+				if (miniFrameStarted) {
+					miniFrame.setTitle("Item: " + labelItemId.getText() + 
+						"  **  #" + currentItemPosition.toString());
+					textFieldPageTypeMini.setText(currentPageType);
+					buttonWriteToExcelMini.setEnabled(true);
+				}
 			} else {
 				textFieldPageType.setText("Excel QC List (QC Files) is not chosen.");
 				textFieldPageTypeMini.setText("Excel QC List (QC Files) is not chosen.");
@@ -1942,7 +1960,7 @@ objectPaneQcToolHelper()
 	buttonNextItemHandler = new ActionListener() {
 		// actions needed: (1) close all files; (2) open next item files
 		actionPerformed(evnt) {
-			nextItemAction();
+			actionNextItem();
 		}
 	};
 	//}}}
@@ -2087,22 +2105,45 @@ objectPaneQcToolHelper()
 	};
 	//}}}
 	
-	//{{{ //~~~ buttonMiniFrameHandler
-	buttonMiniFrameHandler = new ActionListener() {
-		actionPerformed(evnt) {
-			pageTypeFrameMini();
-		}
-	};
-	//}}}
-	
 	//{{{ //~~~ buttonWriteToExcelHandler
 	buttonWriteToExcelHandler = new ActionListener() {
 			actionPerformed(evnt) {
-				writeToExcelAction();
+				actionWriteToExcel();
 			}
 		};
 	//}}}
 	
+	// for MINI FRAME:
+	//{{{ //~~~ buttonMiniFrameHandler
+	buttonMiniFrameHandler = new ActionListener() {
+		actionPerformed(evnt) {
+			// a possible launch of Mini Frame:
+			miniFrame = pageTypeFrameMini();
+			//textFieldPageTypeMini.setText("");
+			textFieldPageTypeMini.setText(currentPageType);
+			miniFrameStarted = true;
+		}
+	};
+	//}}}
+	
+	//{{{ //~~~ buttonNextItemMiniHandler
+	buttonNextItemMiniHandler = new ActionListener() {
+		// actions needed: (1) close all files; (2) open next item files
+		actionPerformed(evnt) {
+			actionNextItem();
+		}
+	};
+	//}}}
+	
+	//{{{ //~~~ buttonWriteToExcelMiniHandler
+	buttonWriteToExcelMiniHandler = new ActionListener() {
+		actionPerformed(evnt) {
+			actionWriteToExcel();
+		}
+	};
+	//}}}
+	
+	// add listeners:
 	buttonChooseItem.addActionListener(buttonChooseItemHandler);
 	buttonNextItem.addActionListener(buttonNextItemHandler);
 	buttonCloseFiles.addActionListener(buttonCloseFilesHandler);
@@ -2111,12 +2152,20 @@ objectPaneQcToolHelper()
 	buttonMiniFrame.addActionListener(buttonMiniFrameHandler); 
 	buttonWriteToExcel.addActionListener(buttonWriteToExcelHandler);
 	//
+	// for MINI FRAME:	
+	buttonNextItemMini.addActionListener(buttonNextItemMiniHandler);
+	buttonWriteToExcelMini.addActionListener(buttonWriteToExcelMiniHandler);
+	//
+		
 	return paneQcToolHelper;
 }
 
 objectPaneAbout() {
-	aboutString = "=STARTER = BSH = 2021-08-15="; 
+	aboutString = "=STARTER = BSH = 2021-11-26="; 
 	aboutString = aboutString + "\nMajor changes:"; 
+	aboutString = aboutString + "\n2021.11.26: Mini Frame made better.";
+	aboutString = aboutString + "\n2021.11.02: PDFs of figures will not open.";
+	aboutString = aboutString + "\n2021.09.16: Mini frame revised.";
 	aboutString = aboutString + "\n2021.08.15: Mini frame implemented.";
 	aboutString = aboutString + "\n2021.05.27: Some PDFs will not be opened. Scrolling in \"About\".";
 	aboutString = aboutString + "\n2021.04.27: Buttons 'props' added";
@@ -2174,7 +2223,7 @@ objectPanelMain()
 }
 
 objectStarterFrame() {
-	starterFrame = new JFrame("=STARTER = BSH = 2021-08-15=");
+	starterFrame = new JFrame("=STARTER = BSH = 2021-11-26=");
 	starterFrame.setSize(400,300);  // say, but we will see later
 	// Position the frame:
 	ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
